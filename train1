@@ -1,0 +1,608 @@
+Average Loss at Step 50: 0.578281
+Average Train Accuracy 73.24%
+Validate Accuracy 1.00%
+Average Loss at Step 100: 0.644682
+Average Train Accuracy 62.96%
+Validate Accuracy 1.00%
+Average Loss at Step 150: 0.534628
+Average Train Accuracy 77.04%
+Validate Accuracy 1.00%
+Average Loss at Step 200: 0.622946
+Average Train Accuracy 64.96%
+Validate Accuracy 3.40%
+Average Loss at Step 250: 0.591420
+Average Train Accuracy 70.90%
+Validate Accuracy 1.00%
+Average Loss at Step 300: 0.540075
+Average Train Accuracy 76.16%
+Validate Accuracy 1.00%
+Average Loss at Step 350: 0.656385
+Average Train Accuracy 61.10%
+Validate Accuracy 1.40%
+Average Loss at Step 400: 0.544831
+Average Train Accuracy 76.38%
+Validate Accuracy 1.00%
+Average Loss at Step 450: 0.577665
+Average Train Accuracy 72.20%
+Validate Accuracy 1.40%
+Average Loss at Step 500: 0.629651
+Average Train Accuracy 64.70%
+Validate Accuracy 1.20%
+Average Loss at Step 550: 0.537463
+Average Train Accuracy 77.04%
+Validate Accuracy 1.20%
+Average Loss at Step 600: 0.627895
+Average Train Accuracy 65.20%
+Validate Accuracy 2.40%
+Average Loss at Step 650: 0.577685
+Average Train Accuracy 71.90%
+Validate Accuracy 1.20%
+Average Loss at Step 700: 0.545572
+Average Train Accuracy 76.22%
+Validate Accuracy 1.20%
+Average Loss at Step 750: 0.649499
+Average Train Accuracy 62.38%
+Validate Accuracy 1.60%
+Average Loss at Step 800: 0.536533
+Average Train Accuracy 76.22%
+Validate Accuracy 1.20%
+Average Loss at Step 850: 0.585671
+Average Train Accuracy 71.32%
+Validate Accuracy 2.40%
+Average Loss at Step 900: 0.613829
+Average Train Accuracy 66.24%
+Validate Accuracy 1.40%
+Average Loss at Step 950: 0.537011
+Average Train Accuracy 77.50%
+Validate Accuracy 1.40%
+Average Loss at Step 1000: 0.628481
+Average Train Accuracy 65.06%
+Validate Accuracy 2.40%
+Average Loss at Step 1050: 0.567689
+Average Train Accuracy 73.42%
+Validate Accuracy 1.40%
+Average Loss at Step 1100: 0.549644
+Average Train Accuracy 75.70%
+Validate Accuracy 2.00%
+Average Loss at Step 1150: 0.636302
+Average Train Accuracy 63.42%
+Validate Accuracy 1.40%
+Average Loss at Step 1200: 0.537260
+Average Train Accuracy 76.88%
+Validate Accuracy 1.40%
+Average Loss at Step 1250: 0.596342
+Average Train Accuracy 69.98%
+Validate Accuracy 4.00%
+Average Loss at Step 1300: 0.604725
+Average Train Accuracy 68.30%
+Validate Accuracy 2.00%
+Average Loss at Step 1350: 0.529133
+Average Train Accuracy 77.36%
+Validate Accuracy 1.80%
+Average Loss at Step 1400: 0.626155
+Average Train Accuracy 64.46%
+Validate Accuracy 2.00%
+Average Loss at Step 1450: 0.557882
+Average Train Accuracy 74.68%
+Validate Accuracy 1.80%
+Average Loss at Step 1500: 0.550896
+Average Train Accuracy 74.78%
+Validate Accuracy 2.60%
+Average Loss at Step 1550: 0.617720
+Average Train Accuracy 65.18%
+Validate Accuracy 1.80%
+Average Loss at Step 1600: 0.534507
+Average Train Accuracy 77.46%
+Validate Accuracy 2.40%
+Average Loss at Step 1650: 0.587985
+Average Train Accuracy 69.14%
+Validate Accuracy 7.60%
+Average Loss at Step 1700: 0.585486
+Average Train Accuracy 70.86%
+Validate Accuracy 1.80%
+Average Loss at Step 1750: 0.529418
+Average Train Accuracy 76.80%
+Validate Accuracy 2.40%
+Average Loss at Step 1800: 0.611773
+Average Train Accuracy 64.94%
+Validate Accuracy 2.80%
+Average Loss at Step 1850: 0.552042
+Average Train Accuracy 75.80%
+Validate Accuracy 2.60%
+Average Loss at Step 1900: 0.547711
+Average Train Accuracy 73.84%
+Validate Accuracy 2.80%
+Average Loss at Step 1950: 0.597057
+Average Train Accuracy 67.92%
+Validate Accuracy 2.40%
+Average Loss at Step 2000: 0.523154
+Average Train Accuracy 77.12%
+Validate Accuracy 3.00%
+Average Loss at Step 2050: 0.578338
+Average Train Accuracy 69.10%
+Validate Accuracy 17.40%
+Average Loss at Step 2100: 0.558326
+Average Train Accuracy 72.86%
+Validate Accuracy 2.20%
+Average Loss at Step 2150: 0.523128
+Average Train Accuracy 76.28%
+Validate Accuracy 5.40%
+Average Loss at Step 2200: 0.589760
+Average Train Accuracy 67.08%
+Validate Accuracy 5.20%
+Average Loss at Step 2250: 0.523829
+Average Train Accuracy 76.18%
+Validate Accuracy 2.20%
+Average Loss at Step 2300: 0.542127
+Average Train Accuracy 72.66%
+Validate Accuracy 3.80%
+Average Loss at Step 2350: 0.563322
+Average Train Accuracy 70.20%
+Validate Accuracy 2.20%
+Average Loss at Step 2400: 0.520405
+Average Train Accuracy 77.08%
+Validate Accuracy 3.20%
+Average Loss at Step 2450: 0.562148
+Average Train Accuracy 70.16%
+Validate Accuracy 16.80%
+Average Loss at Step 2500: 0.532165
+Average Train Accuracy 73.52%
+Validate Accuracy 1.80%
+Average Loss at Step 2550: 0.527861
+Average Train Accuracy 76.32%
+Validate Accuracy 8.60%
+Average Loss at Step 2600: 0.562223
+Average Train Accuracy 68.66%
+Validate Accuracy 13.00%
+Average Loss at Step 2650: 0.519668
+Average Train Accuracy 76.70%
+Validate Accuracy 3.20%
+Average Loss at Step 2700: 0.537666
+Average Train Accuracy 72.38%
+Validate Accuracy 7.20%
+Average Loss at Step 2750: 0.539149
+Average Train Accuracy 71.82%
+Validate Accuracy 17.00%
+Average Loss at Step 2800: 0.518545
+Average Train Accuracy 77.26%
+Validate Accuracy 3.20%
+Average Loss at Step 2850: 0.540851
+Average Train Accuracy 70.58%
+Validate Accuracy 29.20%
+Average Loss at Step 2900: 0.524937
+Average Train Accuracy 73.50%
+Validate Accuracy 1.60%
+Average Loss at Step 2950: 0.513503
+Average Train Accuracy 75.84%
+Validate Accuracy 9.40%
+Average Loss at Step 3000: 0.531336
+Average Train Accuracy 70.44%
+Validate Accuracy 4.20%
+Average Loss at Step 3050: 0.508694
+Average Train Accuracy 76.82%
+Validate Accuracy 2.00%
+Average Loss at Step 3100: 0.526229
+Average Train Accuracy 71.82%
+Validate Accuracy 40.20%
+Average Loss at Step 3150: 0.518376
+Average Train Accuracy 73.26%
+Validate Accuracy 1.40%
+Average Loss at Step 3200: 0.504299
+Average Train Accuracy 77.46%
+Validate Accuracy 4.60%
+Average Loss at Step 3250: 0.518767
+Average Train Accuracy 71.28%
+Validate Accuracy 5.20%
+Average Loss at Step 3300: 0.514197
+Average Train Accuracy 74.84%
+Validate Accuracy 2.40%
+Average Loss at Step 3350: 0.513656
+Average Train Accuracy 75.60%
+Validate Accuracy 2.00%
+Average Loss at Step 3400: 0.492714
+Average Train Accuracy 72.52%
+Validate Accuracy 2.60%
+Average Loss at Step 3450: 0.518527
+Average Train Accuracy 77.40%
+Validate Accuracy 19.40%
+Average Loss at Step 3500: 0.507370
+Average Train Accuracy 73.12%
+Validate Accuracy 89.20%
+Test Accuracy 91.00%
+Average Loss at Step 3550: 0.493353
+Average Train Accuracy 75.28%
+Validate Accuracy 3.20%
+Average Loss at Step 3600: 0.505252
+Average Train Accuracy 76.40%
+Validate Accuracy 2.60%
+Average Loss at Step 3650: 0.484580
+Average Train Accuracy 72.70%
+Validate Accuracy 32.20%
+Average Loss at Step 3700: 0.512656
+Average Train Accuracy 75.14%
+Validate Accuracy 2.20%
+Average Loss at Step 3750: 0.510265
+Average Train Accuracy 75.10%
+Validate Accuracy 15.00%
+Average Loss at Step 3800: 0.473205
+Average Train Accuracy 72.96%
+Validate Accuracy 1.80%
+Average Loss at Step 3850: 0.505637
+Average Train Accuracy 76.52%
+Validate Accuracy 2.80%
+Average Loss at Step 3900: 0.495805
+Average Train Accuracy 73.56%
+Validate Accuracy 91.80%
+Test Accuracy 92.60%
+Average Loss at Step 3950: 0.492886
+Average Train Accuracy 72.96%
+Validate Accuracy 11.80%
+Average Loss at Step 4000: 0.493047
+Average Train Accuracy 76.36%
+Validate Accuracy 1.40%
+Average Loss at Step 4050: 0.469302
+Average Train Accuracy 74.04%
+Validate Accuracy 48.60%
+Average Loss at Step 4100: 0.497416
+Average Train Accuracy 76.40%
+Validate Accuracy 2.80%
+Average Loss at Step 4150: 0.492564
+Average Train Accuracy 74.16%
+Validate Accuracy 16.40%
+Average Loss at Step 4200: 0.455669
+Average Train Accuracy 75.28%
+Validate Accuracy 2.40%
+Average Loss at Step 4250: 0.502796
+Average Train Accuracy 76.70%
+Validate Accuracy 3.40%
+Average Loss at Step 4300: 0.462625
+Average Train Accuracy 74.16%
+Validate Accuracy 80.60%
+Test Accuracy 83.00%
+Average Loss at Step 4350: 0.476252
+Average Train Accuracy 76.34%
+Validate Accuracy 5.00%
+Average Loss at Step 4400: 0.491581
+Average Train Accuracy 76.30%
+Validate Accuracy 3.80%
+Average Loss at Step 4450: 0.441631
+Average Train Accuracy 74.36%
+Validate Accuracy 42.60%
+Average Loss at Step 4500: 0.495600
+Average Train Accuracy 76.32%
+Validate Accuracy 9.20%
+Average Loss at Step 4550: 0.486596
+Average Train Accuracy 73.48%
+Validate Accuracy 62.00%
+Average Loss at Step 4600: 0.417620
+Average Train Accuracy 77.62%
+Validate Accuracy 2.80%
+Average Loss at Step 4650: 0.504414
+Average Train Accuracy 76.58%
+Validate Accuracy 12.40%
+Average Loss at Step 4700: 0.442125
+Average Train Accuracy 74.50%
+Validate Accuracy 59.60%
+Average Loss at Step 4750: 0.455945
+Average Train Accuracy 76.56%
+Validate Accuracy 8.20%
+Average Loss at Step 4800: 0.489356
+Average Train Accuracy 75.86%
+Validate Accuracy 3.60%
+Average Loss at Step 4850: 0.407148
+Average Train Accuracy 75.72%
+Validate Accuracy 11.00%
+Average Loss at Step 4900: 0.479317
+Average Train Accuracy 77.54%
+Validate Accuracy 4.40%
+Average Loss at Step 4950: 0.460276
+Average Train Accuracy 74.84%
+Validate Accuracy 77.80%
+Test Accuracy 79.00%
+Average Loss at Step 5000: 0.408340
+Average Train Accuracy 77.10%
+Validate Accuracy 1.40%
+Average Loss at Step 5050: 0.485183
+Average Train Accuracy 77.80%
+Validate Accuracy 4.80%
+Average Loss at Step 5100: 0.404209
+Average Train Accuracy 75.84%
+Validate Accuracy 27.00%
+Average Loss at Step 5150: 0.456585
+Average Train Accuracy 76.30%
+Validate Accuracy 17.20%
+Average Loss at Step 5200: 0.465312
+Average Train Accuracy 76.02%
+Validate Accuracy 12.60%
+Average Loss at Step 5250: 0.364866
+Average Train Accuracy 76.80%
+Validate Accuracy 13.60%
+Average Loss at Step 5300: 0.470644
+Average Train Accuracy 77.32%
+Validate Accuracy 3.60%
+Average Loss at Step 5350: 0.436706
+Average Train Accuracy 73.86%
+Validate Accuracy 84.20%
+Test Accuracy 85.20%
+Average Loss at Step 5400: 0.399537
+Average Train Accuracy 77.76%
+Validate Accuracy 4.00%
+Average Loss at Step 5450: 0.463168
+Average Train Accuracy 76.90%
+Validate Accuracy 18.60%
+Average Loss at Step 5500: 0.376514
+Average Train Accuracy 75.38%
+Validate Accuracy 25.60%
+Average Loss at Step 5550: 0.460136
+Average Train Accuracy 76.62%
+Validate Accuracy 7.00%
+Average Loss at Step 5600: 0.447567
+Average Train Accuracy 75.82%
+Validate Accuracy 42.60%
+Average Loss at Step 5650: 0.347717
+Average Train Accuracy 77.64%
+Validate Accuracy 45.80%
+Average Loss at Step 5700: 0.469594
+Average Train Accuracy 77.00%
+Validate Accuracy 12.00%
+Average Loss at Step 5750: 0.394329
+Average Train Accuracy 76.10%
+Validate Accuracy 82.40%
+Test Accuracy 82.60%
+Average Loss at Step 5800: 0.394757
+Average Train Accuracy 77.02%
+Validate Accuracy 3.80%
+Average Loss at Step 5850: 0.452907
+Average Train Accuracy 77.42%
+Validate Accuracy 58.40%
+Average Loss at Step 5900: 0.341526
+Average Train Accuracy 76.40%
+Validate Accuracy 54.00%
+Average Loss at Step 5950: 0.458715
+Average Train Accuracy 76.88%
+Validate Accuracy 2.00%
+Average Loss at Step 6000: 0.427414
+Average Train Accuracy 77.18%
+Validate Accuracy 20.20%
+Average Loss at Step 6050: 0.330879
+Average Train Accuracy 77.36%
+Validate Accuracy 19.20%
+Average Loss at Step 6100: 0.466474
+Average Train Accuracy 77.72%
+Validate Accuracy 13.80%
+Average Loss at Step 6150: 0.362259
+Average Train Accuracy 78.10%
+Validate Accuracy 78.60%
+Test Accuracy 79.60%
+Average Loss at Step 6200: 0.391483
+Average Train Accuracy 77.72%
+Validate Accuracy 6.60%
+Average Loss at Step 6250: 0.433742
+Average Train Accuracy 78.44%
+Validate Accuracy 24.60%
+Average Loss at Step 6300: 0.312659
+Average Train Accuracy 79.36%
+Validate Accuracy 39.20%
+Average Loss at Step 6350: 0.441947
+Average Train Accuracy 77.42%
+Validate Accuracy 14.40%
+Average Loss at Step 6400: 0.407868
+Average Train Accuracy 77.02%
+Validate Accuracy 37.00%
+Average Loss at Step 6450: 0.319545
+Average Train Accuracy 79.64%
+Validate Accuracy 23.60%
+Average Loss at Step 6500: 0.458567
+Average Train Accuracy 77.34%
+Validate Accuracy 4.80%
+Average Loss at Step 6550: 0.330027
+Average Train Accuracy 77.70%
+Validate Accuracy 66.80%
+Average Loss at Step 6600: 0.371957
+Average Train Accuracy 79.44%
+Validate Accuracy 2.40%
+Average Loss at Step 6650: 0.443739
+Average Train Accuracy 76.94%
+Validate Accuracy 44.60%
+Average Loss at Step 6700: 0.294419
+Average Train Accuracy 79.30%
+Validate Accuracy 43.40%
+Average Loss at Step 6750: 0.441627
+Average Train Accuracy 78.24%
+Validate Accuracy 5.60%
+Average Loss at Step 6800: 0.385725
+Average Train Accuracy 76.98%
+Validate Accuracy 65.00%
+Average Loss at Step 6850: 0.302224
+Average Train Accuracy 79.96%
+Validate Accuracy 43.40%
+Average Loss at Step 6900: 0.448794
+Average Train Accuracy 78.48%
+Validate Accuracy 10.40%
+Average Loss at Step 6950: 0.303063
+Average Train Accuracy 78.48%
+Validate Accuracy 39.20%
+Average Loss at Step 7000: 0.369106
+Average Train Accuracy 78.22%
+Validate Accuracy 6.20%
+Average Loss at Step 7050: 0.423842
+Average Train Accuracy 77.26%
+Validate Accuracy 47.20%
+Average Loss at Step 7100: 0.257439
+Average Train Accuracy 79.64%
+Validate Accuracy 31.80%
+Average Loss at Step 7150: 0.429226
+Average Train Accuracy 77.78%
+Validate Accuracy 6.80%
+Average Loss at Step 7200: 0.357215
+Average Train Accuracy 76.82%
+Validate Accuracy 75.20%
+Test Accuracy 76.80%
+Average Loss at Step 7250: 0.301205
+Average Train Accuracy 79.36%
+Validate Accuracy 5.60%
+Average Loss at Step 7300: 0.420293
+Average Train Accuracy 77.36%
+Validate Accuracy 14.40%
+Average Loss at Step 7350: 0.267268
+Average Train Accuracy 79.24%
+Validate Accuracy 38.00%
+Average Loss at Step 7400: 0.373899
+Average Train Accuracy 78.24%
+Validate Accuracy 3.40%
+Average Loss at Step 7450: 0.395933
+Average Train Accuracy 77.30%
+Validate Accuracy 40.20%
+Average Loss at Step 7500: 0.240843
+Average Train Accuracy 80.12%
+Validate Accuracy 12.60%
+Average Loss at Step 7550: 0.353358
+Average Train Accuracy 63.18%
+Validate Accuracy 12.20%
+Average Loss at Step 7600: 0.418198
+Average Train Accuracy 77.56%
+Validate Accuracy 14.60%
+Average Loss at Step 7650: 0.246909
+Average Train Accuracy 79.56%
+Validate Accuracy 39.60%
+Average Loss at Step 7700: 0.392141
+Average Train Accuracy 78.56%
+Validate Accuracy 2.40%
+Average Loss at Step 7750: 0.372107
+Average Train Accuracy 78.18%
+Validate Accuracy 44.00%
+Average Loss at Step 7800: 0.238508
+Average Train Accuracy 80.04%
+Validate Accuracy 12.20%
+Average Loss at Step 7850: 0.334491
+Average Train Accuracy 87.41%
+Validate Accuracy 13.00%
+Average Loss at Step 7900: 0.344051
+Average Train Accuracy 86.82%
+Validate Accuracy 7.00%
+Average Loss at Step 7950: 0.337270
+Average Train Accuracy 86.90%
+Validate Accuracy 20.00%
+Average Loss at Step 8000: 0.329540
+Average Train Accuracy 87.19%
+Validate Accuracy 22.80%
+Average Loss at Step 8050: 0.316693
+Average Train Accuracy 88.24%
+Validate Accuracy 58.60%
+Average Loss at Step 8100: 0.300043
+Average Train Accuracy 89.36%
+Validate Accuracy 58.20%
+Average Loss at Step 8150: 0.319551
+Average Train Accuracy 88.17%
+Validate Accuracy 18.20%
+Average Loss at Step 8200: 0.332340
+Average Train Accuracy 86.76%
+Validate Accuracy 4.40%
+Average Loss at Step 8250: 0.329703
+Average Train Accuracy 87.55%
+Validate Accuracy 13.40%
+Average Loss at Step 8300: 0.316998
+Average Train Accuracy 87.98%
+Validate Accuracy 6.20%
+Average Loss at Step 8350: 0.327284
+Average Train Accuracy 87.77%
+Validate Accuracy 28.40%
+Average Loss at Step 8400: 0.304906
+Average Train Accuracy 89.01%
+Validate Accuracy 43.20%
+Average Loss at Step 8450: 0.290561
+Average Train Accuracy 89.79%
+Validate Accuracy 59.40%
+Average Loss at Step 8500: 0.293369
+Average Train Accuracy 89.56%
+Validate Accuracy 40.20%
+Average Loss at Step 8550: 0.301259
+Average Train Accuracy 88.90%
+Validate Accuracy 16.00%
+Average Loss at Step 8600: 0.317576
+Average Train Accuracy 87.99%
+Validate Accuracy 6.40%
+Average Loss at Step 8650: 0.322007
+Average Train Accuracy 87.92%
+Validate Accuracy 18.80%
+Average Loss at Step 8700: 0.319342
+Average Train Accuracy 87.83%
+Validate Accuracy 18.60%
+Average Loss at Step 8750: 0.298926
+Average Train Accuracy 88.75%
+Validate Accuracy 48.20%
+Average Loss at Step 8800: 0.294150
+Average Train Accuracy 89.35%
+Validate Accuracy 54.80%
+Average Loss at Step 8850: 0.275503
+Average Train Accuracy 90.37%
+Validate Accuracy 44.00%
+Average Loss at Step 8900: 0.300157
+Average Train Accuracy 88.88%
+Validate Accuracy 35.60%
+Average Loss at Step 8950: 0.323261
+Average Train Accuracy 87.96%
+Validate Accuracy 14.20%
+Average Loss at Step 9000: 0.301977
+Average Train Accuracy 88.89%
+Validate Accuracy 17.40%
+Average Loss at Step 9050: 0.317928
+Average Train Accuracy 88.23%
+Validate Accuracy 6.20%
+Average Loss at Step 9100: 0.288937
+Average Train Accuracy 89.48%
+Validate Accuracy 30.40%
+Average Loss at Step 9150: 0.291238
+Average Train Accuracy 89.62%
+Validate Accuracy 43.20%
+Average Loss at Step 9200: 0.270536
+Average Train Accuracy 90.86%
+Validate Accuracy 52.80%
+Average Loss at Step 9250: 0.275583
+Average Train Accuracy 90.41%
+Validate Accuracy 30.20%
+Average Loss at Step 9300: 0.289814
+Average Train Accuracy 89.57%
+Validate Accuracy 15.60%
+Average Loss at Step 9350: 0.297105
+Average Train Accuracy 89.07%
+Validate Accuracy 29.00%
+Average Loss at Step 9400: 0.310641
+Average Train Accuracy 88.37%
+Validate Accuracy 8.20%
+Average Loss at Step 9450: 0.293915
+Average Train Accuracy 88.90%
+Validate Accuracy 16.80%
+Average Loss at Step 9500: 0.285621
+Average Train Accuracy 89.72%
+Validate Accuracy 36.80%
+Average Loss at Step 9550: 0.264537
+Average Train Accuracy 91.13%
+Validate Accuracy 48.00%
+Average Loss at Step 9600: 0.262539
+Average Train Accuracy 90.65%
+Validate Accuracy 45.20%
+Average Loss at Step 9650: 0.292083
+Average Train Accuracy 89.59%
+Validate Accuracy 26.40%
+Average Loss at Step 9700: 0.283429
+Average Train Accuracy 89.96%
+Validate Accuracy 10.00%
+Average Loss at Step 9750: 0.295397
+Average Train Accuracy 89.11%
+Validate Accuracy 7.40%
+Average Loss at Step 9800: 0.279268
+Average Train Accuracy 89.83%
+Validate Accuracy 23.00%
+Average Loss at Step 9850: 0.268733
+Average Train Accuracy 90.47%
+Validate Accuracy 18.80%
+Average Loss at Step 9900: 0.263841
+Average Train Accuracy 90.88%
+Validate Accuracy 41.80%
+Average Loss at Step 9950: 0.255717
+Average Train Accuracy 91.16%
+Validate Accuracy 46.40%
+Average Loss at Step 10000: 0.259970
+Average Train Accuracy 91.09%
+Validate Accuracy 31.80%
