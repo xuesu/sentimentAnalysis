@@ -1,0 +1,26 @@
+#surefire
+#Sat Feb 18 17:32:52 CST 2017
+testClassesDirectory=/home/iris/javaprac/ansj.paper/target/test-classes
+useManifestOnlyJar=true
+classPathUrl.1=/home/iris/javaprac/ansj.paper/target/classes
+reportsDirectory=/home/iris/javaprac/ansj.paper/target/surefire-reports
+classPathUrl.0=/home/iris/javaprac/ansj.paper/target/test-classes
+dirscanner.0=directoryScannerOptions
+providerConfiguration=org.apache.maven.surefire.junit.JUnit3Provider
+testSuiteDefinitionTestSourceDirectory=/home/iris/javaprac/ansj.paper/src/test/java
+surefireClassPathUrl.1=/home/iris/.m2/repository/org/apache/maven/surefire/surefire-api/2.7.1/surefire-api-2.7.1.jar
+surefireClassPathUrl.0=/home/iris/.m2/repository/org/apache/maven/surefire/surefire-junit3/2.7.1/surefire-junit3-2.7.1.jar
+report.2=org.apache.maven.surefire.report.XMLReporter
+useSystemClassLoader=true
+report.1=org.apache.maven.surefire.report.BriefFileReporter
+excludes0=**/*$*
+report.0=org.apache.maven.surefire.report.ForkingConsoleReporter
+isTrimStackTrace=true
+dirscanner.0.params=/home/iris/javaprac/ansj.paper/target/test-classes|[**/Test*.java, **/*Test.java, **/*TestCase.java]|[**/*$*]
+enableAssertions=true
+includes2=**/*TestCase.java
+failIfNoTests=false
+includes1=**/*Test.java
+dirscanner.0.types=java.io.File|java.util.ArrayList|java.util.ArrayList
+includes0=**/Test*.java
+childDelegation=false
