@@ -51,7 +51,7 @@ def read_page(hotelid, data, failed_id, success_id, ffl=False):
             failed_id.save({"hotelid": hotelid})
         return False
     try:
-        time.sleep(random.random() * 60)
+        time.sleep(random.random() * 300)
         for _ in range(300):
             try:
                 firefox.execute_script("window.scrollTo(0, document.body.scrollHeight);")
@@ -59,10 +59,6 @@ def read_page(hotelid, data, failed_id, success_id, ffl=False):
                 blocks = firefox.find_elements_by_css_selector(".hotel-t-border")
                 if len(blocks) >= num:
                     break
-                if ffl:
-                    success_id.write("{}\n".format(hotelid))
-                else:
-                    success_id.save({"hotelid": hotelid})
             except selenium.common.exceptions.StaleElementReferenceException as e:
                 pass
             except selenium.common.exceptions.NoSuchElementException as e:
@@ -89,6 +85,10 @@ def read_page(hotelid, data, failed_id, success_id, ffl=False):
                 data.write(json.dumps(doc) + ",\n")
             else:
                 data.save(doc)
+    if ffl:
+        success_id.write("{}\n".format(hotelid))
+    else:
+        success_id.save({"hotelid": hotelid})
     logger.info("Hotel {} has successfully extracted and saved {} records!".format(hotelid, cnt))
     return True
 
