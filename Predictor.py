@@ -23,9 +23,9 @@ class Predictor:
         with self.graph.as_default():
             # input_value
             self.train_dataset = tf.placeholder(tf.int32,
-                                                shape=[Mes.DG_BATCH_SZ, Mes.DG_SENTENCE_SZ, self.dg_out_sz])
+                                                shape=[None, Mes.DG_SENTENCE_SZ, self.dg_out_sz])
             self.batch_size = tf.shape(self.train_dataset)[0]
-            self.train_labels = tf.placeholder(tf.int32, shape=[Mes.DG_BATCH_SZ, Mes.LABEL_NUM])
+            self.train_labels = tf.placeholder(tf.int32, shape=[None, Mes.LABEL_NUM])
             self.train_natures, self.train_words = tf.split(self.train_dataset, [self.dg_natures_sz, 1], 2)
             self.train_words = tf.squeeze(self.train_words, -1)
             # variable
@@ -51,22 +51,25 @@ class Predictor:
             self.pool3 = tf.layers.max_pooling1d(self.conv3, Mes.PRE_POOL3_L1_POOL_SZ, Mes.PRE_POOL3_L1_STRIDE)
             self.pool4 = tf.layers.max_pooling1d(self.conv4, Mes.PRE_POOL4_L1_POOL_SZ, Mes.PRE_POOL4_L1_STRIDE)
             # self.concat = tf.concat([self.conv1, self.conv2, self.conv3, self.conv4], 1)
-            self.concat = tf.concat([self.pool1, self.pool2, self.pool3, self.pool4], 1)
-            self.conv1_l2 = tf.layers.conv1d(self.concat, Mes.PRE_CONV_L2_OUT_D,
+            concat = tf.concat([self.pool1, self.pool2, self.pool3, self.pool4], 1)
+            self.conv1_l2 = tf.layers.conv1d(concat, Mes.PRE_CONV_L2_OUT_D,
                                          Mes.PRE_CONV1_L2_KERNEL_NUM,
                                          Mes.PRE_CONV1_L2_STRIDE, name="Convnet1_l2")
-            self.conv2_l2 = tf.layers.conv1d(self.concat, Mes.PRE_CONV_L2_OUT_D,
+            self.conv2_l2 = tf.layers.conv1d(concat, Mes.PRE_CONV_L2_OUT_D,
                                          Mes.PRE_CONV2_L2_KERNEL_NUM,
                                          Mes.PRE_CONV2_L2_STRIDE, name="Convnet2_l2")
-            self.conv3_l2 = tf.layers.conv1d(self.concat, Mes.PRE_CONV_L2_OUT_D,
+            self.conv3_l2 = tf.layers.conv1d(concat, Mes.PRE_CONV_L2_OUT_D,
                                          Mes.PRE_CONV3_L2_KERNEL_NUM,
                                          Mes.PRE_CONV3_L2_STRIDE, name="Convnet3_l2")
-            self.reshaped = tf.reshape(tf.concat([self.conv1_l2, self.conv2_l2, self.conv3_l2], 1), [Mes.DG_BATCH_SZ, -1])
+            concat_l2 = tf.concat([self.conv1_l2, self.conv2_l2, self.conv3_l2], 1)
+            shape = concat_l2.get_shape().as_list()
+            out_num = shape[1] * shape[2]
+            self.reshaped = tf.reshape(concat_l2, [-1, out_num])
             self.linear1 = tf.layers.dense(self.reshaped, Mes.PRE_LINEAR1_SZ, name="Linear1")
             self.lstm = tf.contrib.rnn.MultiRNNCell([
                 tf.contrib.rnn.BasicLSTMCell(
                     Mes.PRE_LSTM_SZ) for _ in range(Mes.PRE_LSTM_LAYER_NUM)])
-            self.state = [[tf.placeholder(tf.float32, shape=[Mes.DG_BATCH_SZ, sz]) for sz in state_sizes]
+            self.state = [[tf.placeholder(tf.float32, shape=[None, sz]) for sz in state_sizes]
                           for state_sizes in self.lstm.state_size]
             self.lstm_output, self.new_state = self.lstm(self.linear1, self.state)
             self.logits = tf.layers.dense(self.lstm_output, Mes.PRE_LINEAR3_SZ, name="Linear2")
