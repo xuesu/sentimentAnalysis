@@ -10,7 +10,7 @@ class DataGenerator:
     def __init__(self, docs, ):
         self.words = json.load(open(Mes.W2V_WORDS_PATH))
         self.words_id = json.load(open(Mes.W2V_WORDS_ID_PATH))
-        self.voc_sz = len(self.words)
+        self.voc_sz = len(self.words) + 10
         # self.embedding = json.load(open(Mes.W2V_EMB_PATH))
         self.natures = json.load(open(Mes.N2N_NATURES_PATH))
         self.natures_id = json.load(open(Mes.N2N_NATURES_ID_PATH))
@@ -85,7 +85,7 @@ class DataGenerator:
         ans = numpy.zeros([self.natures_sz + 1], dtype=int)
         if word is not None:
             ans[self.natures_id[word[1]]] = 1
-            ans[self.natures_sz] = self.words_id[word[2]]
+            ans[-1] = self.words_id[word[2]]
         return ans
 
     def record2vec(self, record, ind):
@@ -132,7 +132,7 @@ class DataGenerator:
                 inds[2] -= 1
             inds[1] = 0
         else:
-            inds[1] += self.sentence_sz - Mes.PRE_CONV1_KERNEL_NUM
+            inds[1] += self.sentence_sz
         return numpy.array(ans), numpy.array(labels), fl
 
     def next_test(self, truncated=False):

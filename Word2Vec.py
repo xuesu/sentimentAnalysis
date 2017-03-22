@@ -1,6 +1,6 @@
 # coding=utf-8
 from __future__ import print_function
-from sklearn.manifold import TSNE
+# from sklearn.manifold import TSNE
 
 import pymongo
 import random
@@ -180,7 +180,7 @@ class Word2Vec:
     def dump(self):
         json.dump(self.words, open(Mes.W2V_WORDS_PATH, "w"))
         json.dump(self.words_id, open(Mes.W2V_WORDS_ID_PATH, "w"))
-        json.dump(self.final_embedding.tolist(), open(Mes.W2V_EMB_PATH, "w"))
+        # json.dump(self.final_embedding.tolist(), open(Mes.W2V_EMB_PATH, "w"))
 
 class Nature2Num:
     def __init__(self, docs):
@@ -203,6 +203,6 @@ if __name__ == '__main__':
     hotel = pymongo.MongoClient("localhost", 27017).paper.hotel
     n2n = Nature2Num(hotel)
     n2n.dump()
-    # word2vec = Word2Vec(hotel)
+    word2vec = Word2Vec(hotel)
     # word2vec.train()
-    # word2vec.dump()
+    word2vec.dump()

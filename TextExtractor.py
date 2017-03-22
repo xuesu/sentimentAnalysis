@@ -59,8 +59,7 @@ def deleteRareWords():
             dt[word[0]] = dt.get(word[0], 0) + 1
     ls = [dt[word] for word in dt]
     ls.sort()
-    voc_size = 5000
-    print ls[-voc_size]
+    voc_size = 10000
     for word in dt:
         if dt[word] < ls[-voc_size]:
             dt[word] = u'RAREWORD'
@@ -75,7 +74,6 @@ def deleteRareWords():
                 record['words'][i].append(pure_word)
             else:
                 record['words'][i][2] = pure_word
-            print record['words'][i]
         hotel.save(record)
 
 
@@ -88,8 +86,3 @@ def clear_record(text):
 if __name__ == '__main__':
     deleteRareWords()
     records = hotel.find()
-    for record in records:
-        for word in record['words']:
-            if len(word) < 3:
-                print 'E'
-            # print word
