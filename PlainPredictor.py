@@ -59,8 +59,6 @@ class PlainPredictor:
         score = sum(emotion_vs + adv2emotion_vs)
         return score
 
-
-
     def predict(self, record):
         words = [word[0] for word in record['words'] if word[1] == 'w' or word[1] == 'a' or word[1] == 'd']
         sentence = ' '.join(words)

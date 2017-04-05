@@ -1,6 +1,9 @@
-import tensorflow as tf
+import datetime
+import os
 import pymongo
 import numpy
+import shutil
+import tensorflow as tf
 
 import Mes
 import Utils
@@ -75,6 +78,7 @@ class Predictor:
             self.logits = tf.layers.dense(self.lstm_output, Mes.PRE_LINEAR3_SZ, name="Linear2")
             self.loss = tf.reduce_mean(tf.losses.softmax_cross_entropy(self.train_labels, self.logits))
             self.optimizer = tf.train.GradientDescentOptimizer(Mes.PRE_E_FIXED_RATE).minimize(self.loss)
+            self.saver = tf.train.Saver()
 
     def train_sentences(self, session, nxt_method, batch_sz=Mes.DG_BATCH_SZ,
                         rnum=Mes.DG_RNUM, get_accuracy=False):
@@ -132,11 +136,14 @@ class Predictor:
         return accuracy / self.validate_times
 
     def train(self):
+        try:
+            os.mkdir(Mes.MODEL_SAVE_PATH)
+        except OSError as e:
+            print e
         with tf.Session(graph=self.graph) as session:
             tf.initialize_all_variables().run()
             average_loss = 0.0
             average_train_accuracy = 0.0
-            nxt_args_ind = 0
             for i in range(1, Mes.PRE_STEP_NUM):
                 l, train_accuracy = self.train_sentences(session, self.data_generator.next_train,
                                                          Mes.DG_BATCH_SZ,
@@ -152,6 +159,14 @@ class Predictor:
                     if accuracy > 70:
                         test_accuracy = self.test(session)
                         print "Test Accuracy %.2f%%" % test_accuracy
+                        self.saver.save(session, "%s/%.0f_%s.model" % (Mes.MODEL_SAVE_PATH, accuracy,
+                                                                       datetime.datetime.now().strftime("%y%m%d%H%M%S")))
+                        shutil.copy("Mes.py", "%s/%.0f_%s.Mes.py" % (Mes.MODEL_SAVE_PATH, accuracy,
+                                                                     datetime.datetime.now().strftime("%y%m%d%H%M%S")))
+                        shutil.copy("Predictor.py", "%s/%.0f_%s.Predictor.py" % (Mes.MODEL_SAVE_PATH,
+                                                                                 accuracy, datetime.datetime.now().
+                                                                                 strftime("%y%m%d%H%M%S")))
+
                     average_train_accuracy = 0.0
                     average_loss = 0.0
             accuracy = self.test(session)

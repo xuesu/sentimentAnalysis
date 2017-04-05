@@ -40,57 +40,57 @@ class Word2Vec:
         assert (len(self.words_id) == len(self.words))
         self.voc_sz = len(self.words)
         print('Ready to train %d words' % self.voc_sz)
-        self.batch_sz = Mes.W2V_BATCH_SZ
-
-        # test_batch
-        self.window_sz = Mes.W2V_WINDOW_SZ
-        self.skip_num = Mes.W2V_SKIP_NUM
-
-        # validate
-        self.valid_sz = 16
-        self.valid_examples = numpy.array(random.sample(range(self.voc_sz), self.valid_sz))
-
-        # tensorflow Graph
-        self.embedding_sz = Mes.W2V_EMB_SZ
-        self.negative_sample_num = Mes.W2V_NEG_SAMPLE_NUM
-        self.final_embedding = None
-        self.graph = tf.Graph()
-        with self.graph.as_default():
-            # train
-            # input value
-            self.train_dataset = tf.placeholder(tf.int32, shape=[self.batch_sz])
-            self.train_labels = tf.placeholder(tf.int32, shape=[self.batch_sz, 1])
-
-            # variable
-            # variable embedding of w
-            self.embedding = tf.Variable(tf.random_uniform([self.voc_sz, self.embedding_sz], 1.0, -1.0))
-            # variable calculate c, or we can say weights is embedding of c
-            self.weights = tf.Variable(tf.random_uniform([self.voc_sz, self.embedding_sz], 1.0, -1.0))
-            self.biases = tf.Variable(tf.zeros([self.voc_sz]))
-
-            # model
-            # model embedding
-            self.embed = tf.nn.embedding_lookup(self.embedding, self.train_dataset)
-            # loss calculate c
-            self.loss = tf.reduce_mean(tf.nn.sampled_softmax_loss(self.weights, self.biases,
-                                                                  self.train_labels, self.embed,
-                                                                  self.negative_sample_num, self.embedding_sz))
-            # optimizer
-            self.optimizer = tf.train.AdagradOptimizer(1.0).minimize(self.loss)
-
-            # normalize embedding
-            self.norm = tf.sqrt(tf.reduce_sum(tf.square(self.embedding), 1, True))
-            self.norm_embedding = self.embedding / self.norm
-
-            # validate
-            # input
-            self.valid_dataset = tf.constant(value=self.valid_examples, dtype=tf.int32)
-            # similarity
-            self.valid_embed = tf.nn.embedding_lookup(self.norm_embedding, self.valid_dataset)
-            self.similar = tf.matmul(self.valid_embed, tf.transpose(self.norm_embedding))
-
-        # visualize
-        self.visual_num = Mes.W2V_VISUAL_NUM
+        # self.batch_sz = Mes.W2V_BATCH_SZ
+        #
+        # # test_batch
+        # self.window_sz = Mes.W2V_WINDOW_SZ
+        # self.skip_num = Mes.W2V_SKIP_NUM
+        #
+        # # validate
+        # self.valid_sz = 16
+        # self.valid_examples = numpy.array(random.sample(range(self.voc_sz), self.valid_sz))
+        #
+        # # tensorflow Graph
+        # self.embedding_sz = Mes.W2V_EMB_SZ
+        # self.negative_sample_num = Mes.W2V_NEG_SAMPLE_NUM
+        # self.final_embedding = None
+        # self.graph = tf.Graph()
+        # with self.graph.as_default():
+        #     # train
+        #     # input value
+        #     self.train_dataset = tf.placeholder(tf.int32, shape=[self.batch_sz])
+        #     self.train_labels = tf.placeholder(tf.int32, shape=[self.batch_sz, 1])
+        #
+        #     # variable
+        #     # variable embedding of w
+        #     self.embedding = tf.Variable(tf.random_uniform([self.voc_sz, self.embedding_sz], 1.0, -1.0))
+        #     # variable calculate c, or we can say weights is embedding of c
+        #     self.weights = tf.Variable(tf.random_uniform([self.voc_sz, self.embedding_sz], 1.0, -1.0))
+        #     self.biases = tf.Variable(tf.zeros([self.voc_sz]))
+        #
+        #     # model
+        #     # model embedding
+        #     self.embed = tf.nn.embedding_lookup(self.embedding, self.train_dataset)
+        #     # loss calculate c
+        #     self.loss = tf.reduce_mean(tf.nn.sampled_softmax_loss(self.weights, self.biases,
+        #                                                           self.train_labels, self.embed,
+        #                                                           self.negative_sample_num, self.embedding_sz))
+        #     # optimizer
+        #     self.optimizer = tf.train.AdagradOptimizer(1.0).minimize(self.loss)
+        #
+        #     # normalize embedding
+        #     self.norm = tf.sqrt(tf.reduce_sum(tf.square(self.embedding), 1, True))
+        #     self.norm_embedding = self.embedding / self.norm
+        #
+        #     # validate
+        #     # input
+        #     self.valid_dataset = tf.constant(value=self.valid_examples, dtype=tf.int32)
+        #     # similarity
+        #     self.valid_embed = tf.nn.embedding_lookup(self.norm_embedding, self.valid_dataset)
+        #     self.similar = tf.matmul(self.valid_embed, tf.transpose(self.norm_embedding))
+        #
+        # # visualize
+        # self.visual_num = Mes.W2V_VISUAL_NUM
 
     def generate_train_batch(self):
         train_batch = numpy.ndarray([self.batch_sz], dtype=int)
