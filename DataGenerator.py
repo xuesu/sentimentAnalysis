@@ -28,14 +28,14 @@ class DataGenerator:
         self.test_data, self.test_labels = DataGenerator.get_data_label(records[:self.test_sz])
         self.valid_data, self.valid_labels = DataGenerator.get_data_label(
             records[self.test_sz:self.test_sz + self.valid_sz])
-        self.train_data, self.train_labels = self.shuffle_train_data_label(records[-self.train_sz:])
+        self.train_data, self.train_labels = DataGenerator.get_data_label(records[-self.train_sz:])
         self.test_inds = [0, 0, 0]
         self.valid_inds = [0, 0, 0]
         self.train_inds = [0, 0, 0]
 
     @staticmethod
     def get_data_label(records):
-        labels = [int(record['tag'] + 1) for record in records]
+        labels = [int(record['tag']) for record in records]
         dataset = [record['words'] for record in records]
         return dataset, labels
 
@@ -110,6 +110,12 @@ class DataGenerator:
             ans[1] = 1
         return ans
 
+    @staticmethod
+    def shuffle(data, slabels):
+        zp = zip(data, slabels)
+        random.shuffle(zp)
+        return [ele[0] for ele in zp], [ele[1] for ele in zp]
+
     def next(self, data, slabels, inds, batch_sz, r_num=0, truncated=False):
         assert(len(data) == len(slabels))
         data_ind, word_ind = inds[:2]
@@ -144,7 +150,10 @@ class DataGenerator:
     def next_train(self, batch_sz=None, rnum=0, truncated=False):
         if batch_sz is None:
             batch_sz = self.batch_sz
-        return self.next(self.train_data, self.train_labels, self.train_inds, batch_sz, rnum, truncated)
+        nxt = self.next(self.train_data, self.train_labels, self.train_inds, batch_sz, rnum, truncated)
+        if self.train_inds[1] == 0 and self.train_inds[2] == 0 and self.train_inds[0] < batch_sz:
+            self.train_data, self.train_labels = self.shuffle(self.train_data, self.train_labels)
+        return nxt
 
 
 if __name__ == '__main__':

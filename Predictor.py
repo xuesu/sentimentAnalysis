@@ -46,15 +46,16 @@ class Predictor:
             self.conv3 = tf.layers.conv1d(self.embed_with_natures_reshaped, Mes.PRE_CONV_L1_OUT_D,
                                          Mes.PRE_CONV3_L1_KERNEL_NUM,
                                          Mes.PRE_CONV3_L1_STRIDE, name="Convnet3")
-            self.conv4 = tf.layers.conv1d(self.embed_with_natures_reshaped, Mes.PRE_CONV_L1_OUT_D,
-                                         Mes.PRE_CONV4_L1_KERNEL_NUM,
-                                         Mes.PRE_CONV4_L1_STRIDE, name="Convnet4")
+            # self.conv4 = tf.layers.conv1d(self.embed_with_natures_reshaped, Mes.PRE_CONV_L1_OUT_D,
+            #                              Mes.PRE_CONV4_L1_KERNEL_NUM,
+            #                              Mes.PRE_CONV4_L1_STRIDE, name="Convnet4")
             self.pool1 = tf.layers.max_pooling1d(self.conv1, Mes.PRE_POOL1_L1_POOL_SZ, Mes.PRE_POOL1_L1_STRIDE)
             self.pool2 = tf.layers.max_pooling1d(self.conv2, Mes.PRE_POOL2_L1_POOL_SZ, Mes.PRE_POOL2_L1_STRIDE)
             self.pool3 = tf.layers.max_pooling1d(self.conv3, Mes.PRE_POOL3_L1_POOL_SZ, Mes.PRE_POOL3_L1_STRIDE)
-            self.pool4 = tf.layers.max_pooling1d(self.conv4, Mes.PRE_POOL4_L1_POOL_SZ, Mes.PRE_POOL4_L1_STRIDE)
+            # self.pool4 = tf.layers.max_pooling1d(self.conv4, Mes.PRE_POOL4_L1_POOL_SZ, Mes.PRE_POOL4_L1_STRIDE)
             # self.concat = tf.concat([self.conv1, self.conv2, self.conv3, self.conv4], 1)
-            concat = tf.concat([self.pool1, self.pool2, self.pool3, self.pool4], 1)
+            # concat = tf.concat([self.pool1, self.pool2, self.pool3, self.pool4], 1)
+            concat = tf.concat([self.pool1, self.pool2, self.pool3], 1)
             self.conv1_l2 = tf.layers.conv1d(concat, Mes.PRE_CONV_L2_OUT_D,
                                          Mes.PRE_CONV1_L2_KERNEL_NUM,
                                          Mes.PRE_CONV1_L2_STRIDE, name="Convnet1_l2")
@@ -68,14 +69,16 @@ class Predictor:
             shape = concat_l2.get_shape().as_list()
             out_num = shape[1] * shape[2]
             self.reshaped = tf.reshape(concat_l2, [-1, out_num])
-            self.linear1 = tf.layers.dense(self.reshaped, Mes.PRE_LINEAR1_SZ, name="Linear1")
             self.lstm = tf.contrib.rnn.MultiRNNCell([
                 tf.contrib.rnn.BasicLSTMCell(
                     Mes.PRE_LSTM_SZ) for _ in range(Mes.PRE_LSTM_LAYER_NUM)])
             self.state = [[tf.placeholder(tf.float32, shape=[None, sz]) for sz in state_sizes]
                           for state_sizes in self.lstm.state_size]
-            self.lstm_output, self.new_state = self.lstm(self.linear1, self.state)
-            self.logits = tf.layers.dense(self.lstm_output, Mes.PRE_LINEAR3_SZ, name="Linear2")
+            self.lstm_output, self.new_state = self.lstm(self.reshaped, self.state)
+            self.dropout = tf.nn.dropout(self.lstm_output, Mes.PRE_DROPOUT_KEEP)
+            self.linear1 = tf.layers.dense(self.dropout, Mes.PRE_LINEAR1_SZ, name="Linear1")
+            self.relu = tf.nn.relu(self.linear1)
+            self.logits = tf.layers.dense(self.relu, Mes.PRE_LINEAR3_SZ, name="Linear2")
             self.loss = tf.reduce_mean(tf.losses.softmax_cross_entropy(self.train_labels, self.logits))
             self.optimizer = tf.train.GradientDescentOptimizer(Mes.PRE_E_FIXED_RATE).minimize(self.loss)
             self.saver = tf.train.Saver()
@@ -153,7 +156,7 @@ class Predictor:
                 if i % Mes.PRE_VALID_TIME == 0:
                     accuracy = self.validate(session)
                     average_train_accuracy /= Mes.PRE_VALID_TIME
-                    print "Average Loss at Step %d: %.6f" % (i, average_loss / Mes.PRE_VALID_TIME)
+                    print "Average Loss at Step %d: %.10f" % (i, average_loss / Mes.PRE_VALID_TIME)
                     print "Average Train Accuracy %.2f%%" % (average_train_accuracy)
                     print "Validate Accuracy %.2f%%" % accuracy
                     if accuracy > 70:
@@ -173,6 +176,6 @@ class Predictor:
             print "Test Accuracy %.2f%%" % accuracy
 
 if __name__ == '__main__':
-    hotel = pymongo.MongoClient("localhost", 27017).paper.hotel
-    predictor = Predictor(hotel)
+    mobile = pymongo.MongoClient("localhost", 27017).paper.mobile
+    predictor = Predictor(mobile)
     predictor.train()

@@ -200,9 +200,9 @@ class Nature2Num:
 
 
 if __name__ == '__main__':
-    hotel = pymongo.MongoClient("localhost", 27017).paper.hotel
-    n2n = Nature2Num(hotel)
+    col = pymongo.MongoClient("localhost", 27017).paper.mobile
+    n2n = Nature2Num(col)
     n2n.dump()
-    word2vec = Word2Vec(hotel)
+    word2vec = Word2Vec(col)
     # word2vec.train()
     word2vec.dump()

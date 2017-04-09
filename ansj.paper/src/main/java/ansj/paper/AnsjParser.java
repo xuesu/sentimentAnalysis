@@ -79,7 +79,7 @@ public class AnsjParser {
     }
 
     public static void main(String[] args) throws IOException {
-        AnsjParser parser = new AnsjParser("localhost", 27017, "paper", "hotel");
+        AnsjParser parser = new AnsjParser("localhost", 27017, "paper", "mobile");
         parser.toparse();
     }
 

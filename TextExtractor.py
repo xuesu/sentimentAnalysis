@@ -5,7 +5,7 @@ import pymongo
 
 valid_coding = ['gbk', 'gb18030', "gb2312", 'utf8', 'big5', 'unicode']
 
-hotel = pymongo.MongoClient("localhost", 27017).paper.hotel
+hotel = pymongo.MongoClient("localhost", 27017).paper.mobile
 
 
 def convertF2UTF8(filename):
@@ -59,7 +59,7 @@ def deleteRareWords():
             dt[word[0]] = dt.get(word[0], 0) + 1
     ls = [dt[word] for word in dt]
     ls.sort()
-    voc_size = 10000
+    voc_size = min([10000, len(dt)])
     for word in dt:
         if dt[word] < ls[-voc_size]:
             dt[word] = u'RAREWORD'
