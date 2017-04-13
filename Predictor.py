@@ -1,4 +1,5 @@
 import datetime
+import json
 import os
 import pymongo
 import numpy
@@ -21,8 +22,9 @@ class Predictor:
         self.dg_natures_sz = self.data_generator.natures_sz
         self.dg_out_sz = self.data_generator.natures_sz + 1
         self.embed_out_sz = Mes.PRE_EMB_SZ + self.dg_natures_sz
-        # tf
         self.graph = tf.Graph()
+        with open(Mes.W2V_EMB_PATH) as fin:
+            init_embedding = json.load(fin)
         with self.graph.as_default():
             # input_value
             self.train_dataset = tf.placeholder(tf.int32,
@@ -32,37 +34,26 @@ class Predictor:
             self.train_natures, self.train_words = tf.split(self.train_dataset, [self.dg_natures_sz, 1], 2)
             self.train_words = tf.squeeze(self.train_words, -1)
             # variable
-            self.embedding = tf.Variable(tf.random_uniform([self.dg_voc_sz, Mes.PRE_EMB_SZ], 1.0, -1.0))
+            self.embedding = tf.Variable(init_embedding)
             # model
             self.embed = tf.nn.embedding_lookup(self.embedding, self.train_words)
-            self.embed_with_natures = tf.concat([self.embed, tf.to_float(self.train_natures)], 2)
-            self.embed_with_natures_reshaped = tf.reshape(self.embed_with_natures, [self.batch_size, Mes.DG_SENTENCE_SZ, self.embed_out_sz])
-            self.conv1 = tf.layers.conv1d(self.embed_with_natures_reshaped, Mes.PRE_CONV_L1_OUT_D,
-                                         Mes.PRE_CONV1_L1_KERNEL_NUM,
-                                         Mes.PRE_CONV1_L1_STRIDE, name="Convnet1", padding='same')
-            self.conv2 = tf.layers.conv1d(self.embed_with_natures_reshaped, Mes.PRE_CONV_L1_OUT_D,
-                                         Mes.PRE_CONV2_L1_KERNEL_NUM,
-                                         Mes.PRE_CONV2_L1_STRIDE, name="Convnet2", padding='same')
-            self.conv3 = tf.layers.conv1d(self.embed_with_natures_reshaped, Mes.PRE_CONV_L1_OUT_D,
-                                         Mes.PRE_CONV3_L1_KERNEL_NUM,
-                                         Mes.PRE_CONV3_L1_STRIDE, name="Convnet3", padding='same')
-            self.concat = tf.concat([self.conv1, self.conv2, self.conv3], 2)
-            self.conv1_l2 = tf.layers.conv1d(self.concat, Mes.PRE_CONV_L2_OUT_D,
-                                         Mes.PRE_CONV1_L2_KERNEL_NUM,
-                                         Mes.PRE_CONV1_L2_STRIDE, name="Convnet1_l2")
-            self.conv2_l2 = tf.layers.conv1d(self.concat, Mes.PRE_CONV_L2_OUT_D,
-                                         Mes.PRE_CONV2_L2_KERNEL_NUM,
-                                         Mes.PRE_CONV2_L2_STRIDE, name="Convnet2_l2")
-            self.conv3_l2 = tf.layers.conv1d(self.concat, Mes.PRE_CONV_L2_OUT_D,
-                                         Mes.PRE_CONV3_L2_KERNEL_NUM,
-                                         Mes.PRE_CONV3_L2_STRIDE, name="Convnet3_l2")
-            self.pool1_l3 = tf.layers.max_pooling1d(self.conv1_l2, Mes.PRE_POOL1_L3_SIZE, Mes.PRE_POOL1_L3_STRIDE)
-            self.pool2_l3 = tf.layers.max_pooling1d(self.conv2_l2, Mes.PRE_POOL2_L3_SIZE, Mes.PRE_POOL2_L3_STRIDE)
-            self.pool3_l3 = tf.layers.max_pooling1d(self.conv3_l2, Mes.PRE_POOL3_L3_SIZE, Mes.PRE_POOL3_L3_STRIDE)
-            self.concat_l3 = tf.concat([self.pool1_l3, self.pool2_l3, self.pool3_l3], 1)
-            shape = self.concat_l3.get_shape().as_list()
+            # self.embed_with_natures = tf.concat([self.embed, tf.to_float(self.train_natures)], 2)
+            # self.embed_with_natures_reshaped = tf.reshape(self.embed_with_natures, [self.batch_size, Mes.DG_SENTENCE_SZ, self.embed_out_sz])
+            self.convs_l1 = []
+            self.pools_l1 = []
+            for conv_knum, conv_stride, pool_size, pool_stride in zip(Mes.PRE_CONVS_L1_KERNEL_NUM,
+                                                                      Mes.PRE_CONVS_L1_STRIDE,
+                                                                      Mes.PRE_POOLS_L1_SIZE,
+                                                                      Mes.PRE_POOLS_L1_STRIDE):
+                conv = tf.layers.conv1d(self.embed, Mes.PRE_CONV_L1_FILTER_NUM, conv_knum, conv_stride,
+                                        use_bias=True, activation=tf.nn.relu, padding="same")
+                pool = tf.layers.max_pooling1d(conv, pool_size, pool_stride, padding="same")
+                self.convs_l1.append(conv)
+                self.pools_l1.append(pool)
+            self.concat_l1 = tf.concat(self.pools_l1, 2)
+            shape = self.concat_l1.get_shape().as_list()
             out_num = shape[1] * shape[2]
-            self.reshaped = tf.reshape(self.concat_l3, [-1, out_num])
+            self.reshaped = tf.reshape(self.concat_l1, [-1, out_num])
             self.lstm = tf.contrib.rnn.MultiRNNCell([
                 tf.contrib.rnn.BasicLSTMCell(
                     Mes.PRE_LSTM_SZ) for _ in range(Mes.PRE_LSTM_LAYER_NUM)])
@@ -74,7 +65,13 @@ class Predictor:
             self.relu = tf.nn.relu(self.linear1)
             self.logits = tf.layers.dense(self.relu, Mes.PRE_LINEAR3_SZ, name="Linear2")
             self.loss = tf.reduce_mean(tf.losses.softmax_cross_entropy(self.train_labels, self.logits))
-            self.optimizer = tf.train.GradientDescentOptimizer(Mes.PRE_E_FIXED_RATE).minimize(self.loss)
+
+            self.global_step = tf.Variable(0, trainable=False)
+            starter_learning_rate = Mes.PRE_E_LEARNING_RATE
+            self.learning_rate = tf.train.exponential_decay(starter_learning_rate, self.global_step,
+                                                       Mes.PRE_E_DECAY_STEP, Mes.PRE_E_DECAY_RATE, staircase=True)
+            self.optimizer = tf.train.GradientDescentOptimizer(self.learning_rate).minimize(self.loss, global_step=self.global_step)
+            # self.optimizer = tf.train.GradientDescentOptimizer(Mes.PRE_E_FIXED_RATE).minimize(self.loss)
             self.saver = tf.train.Saver()
 
     def train_sentences(self, session, nxt_method, batch_sz=Mes.DG_BATCH_SZ,
@@ -89,8 +86,8 @@ class Predictor:
             for i in range(Mes.PRE_LSTM_LAYER_NUM):
                 for j in range(2):
                     feed_dict[self.state[i][j].name] = state[i][j]
-            _, logits, loss, new_state = session.run(
-                [self.optimizer, self.logits, self.loss, self.new_state], feed_dict=feed_dict)
+            _, logits, loss, new_state, learning_rate = session.run(
+                [self.optimizer, self.logits, self.loss, self.new_state, self.learning_rate], feed_dict=feed_dict)
             state = new_state
             batch_data, batch_labels, finished = nxt_method(batch_sz, rnum)
             feed_dict = {self.train_dataset: batch_data, self.train_labels: batch_labels}
@@ -153,10 +150,10 @@ class Predictor:
                     print "Average Loss at Step %d: %.10f" % (i, average_loss / Mes.PRE_VALID_TIME)
                     print "Average Train Accuracy %.2f%%" % (average_train_accuracy)
                     print "Validate Accuracy %.2f%%" % accuracy
-                    if accuracy >= 80:
+                    if accuracy >= 90:
                         test_accuracy = self.test(session)
                         print "Test Accuracy %.2f%%" % test_accuracy
-                        if test_accuracy >= 80 and average_train_accuracy >= 80:
+                        if test_accuracy >= 90 and average_train_accuracy >= 90:
                             mid_dir = "%s/%.0f_%.0f_%.0f_%s.model" % (Mes.MODEL_SAVE_PATH, average_train_accuracy,
                                                                       accuracy, test_accuracy,
                                                                       datetime.datetime.now().strftime("%y%m%d%H%M%S"))
