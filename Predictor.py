@@ -54,23 +54,24 @@ class Predictor:
             shape = self.concat_l1.get_shape().as_list()
             out_num = shape[1] * shape[2]
             self.reshaped = tf.reshape(self.concat_l1, [-1, out_num])
+            self.dropout = tf.nn.dropout(self.reshaped, Mes.PRE_DROPOUT_KEEP)
+            self.linear1 = tf.layers.dense(self.dropout, Mes.PRE_LINEAR1_SZ, name="Linear1")
             self.lstm = tf.contrib.rnn.MultiRNNCell([
                 tf.contrib.rnn.BasicLSTMCell(
                     Mes.PRE_LSTM_SZ) for _ in range(Mes.PRE_LSTM_LAYER_NUM)])
             self.state = [[tf.placeholder(tf.float32, shape=[None, sz]) for sz in state_sizes]
                           for state_sizes in self.lstm.state_size]
-            self.lstm_output, self.new_state = self.lstm(self.reshaped, self.state)
-            self.dropout = tf.nn.dropout(self.lstm_output, Mes.PRE_DROPOUT_KEEP)
-            self.linear1 = tf.layers.dense(self.dropout, Mes.PRE_LINEAR1_SZ, name="Linear1")
-            self.relu = tf.nn.relu(self.linear1)
-            self.logits = tf.layers.dense(self.relu, Mes.PRE_LINEAR3_SZ, name="Linear2")
-            self.loss = tf.reduce_mean(tf.losses.softmax_cross_entropy(self.train_labels, self.logits))
+            self.lstm_output, self.new_state = self.lstm(self.linear1, self.state)
+            self.logits = tf.layers.dense(self.lstm_output, Mes.PRE_LINEAR3_SZ, name="Linear2")
+            self.softmax = tf.nn.softmax(self.logits)
+            self.log = tf.log(self.softmax)
+            self.loss = -tf.reduce_sum(tf.cast(self.train_labels, tf.float32) * self.log)
 
             self.global_step = tf.Variable(0, trainable=False)
             starter_learning_rate = Mes.PRE_E_LEARNING_RATE
             self.learning_rate = tf.train.exponential_decay(starter_learning_rate, self.global_step,
                                                        Mes.PRE_E_DECAY_STEP, Mes.PRE_E_DECAY_RATE, staircase=True)
-            self.optimizer = tf.train.GradientDescentOptimizer(self.learning_rate).minimize(self.loss, global_step=self.global_step)
+            self.optimizer = tf.train.AdadeltaOptimizer(self.learning_rate).minimize(self.loss, global_step=self.global_step)
             # self.optimizer = tf.train.GradientDescentOptimizer(Mes.PRE_E_FIXED_RATE).minimize(self.loss)
             self.saver = tf.train.Saver()
 
@@ -130,6 +131,8 @@ class Predictor:
         return accuracy / self.validate_times
 
     def train(self):
+        train_accuracys = []
+        valid_accuracys = []
         try:
             os.mkdir(Mes.MODEL_SAVE_PATH)
         except OSError as e:
@@ -147,6 +150,8 @@ class Predictor:
                 if i % Mes.PRE_VALID_TIME == 0:
                     accuracy = self.validate(session)
                     average_train_accuracy /= Mes.PRE_VALID_TIME
+                    train_accuracys.append(average_train_accuracy)
+                    valid_accuracys.append(accuracy)
                     print "Average Loss at Step %d: %.10f" % (i, average_loss / Mes.PRE_VALID_TIME)
                     print "Average Train Accuracy %.2f%%" % (average_train_accuracy)
                     print "Validate Accuracy %.2f%%" % accuracy
@@ -154,6 +159,7 @@ class Predictor:
                         test_accuracy = self.test(session)
                         print "Test Accuracy %.2f%%" % test_accuracy
                         if test_accuracy >= 90 and average_train_accuracy >= 90:
+                            os.mkdir(Mes.MODEL_SAVE_PATH)
                             mid_dir = "%s/%.0f_%.0f_%.0f_%s.model" % (Mes.MODEL_SAVE_PATH, average_train_accuracy,
                                                                       accuracy, test_accuracy,
                                                                       datetime.datetime.now().strftime("%y%m%d%H%M%S"))
@@ -163,6 +169,8 @@ class Predictor:
                     average_train_accuracy = 0.0
                     average_loss = 0.0
             accuracy = self.test(session)
+            with open(datetime.datetime.now().strftime("%y%m%d%H%M%S"), "w") as fout:
+                json.dump([train_accuracys, valid_accuracys], fout)
             print "Final Test Accuracy %.2f%%" % accuracy
 
 if __name__ == '__main__':

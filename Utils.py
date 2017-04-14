@@ -1,14 +1,12 @@
 # coding=utf-8
 
 import re
-import json
-import pylab
+import logging
 import numpy
 import matplotlib.pyplot as plt
+import sys
 
 from matplotlib.font_manager import FontProperties
-
-import Mes
 
 valid_tPunc = [u'。', u'！', u'）', u'!', u'”', u'？', u'?', u'…']
 
@@ -47,3 +45,16 @@ def plot(embeddings, labels, filename):
 def accuracy(predictions, labels):
     return (100.0 * numpy.sum(numpy.argmax(predictions, 1) == numpy.argmax(labels, 1))
             / predictions.shape[0])
+
+
+def init_logger(name):
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s %(levelname)-8s %(message)s', '%a, %d %b %Y %H:%M:%S')
+    file_handler = logging.FileHandler("{}.log".format(name))
+    file_handler.setFormatter(formatter)
+    stream_handler = logging.StreamHandler(sys.stdout)
+    stream_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+    logger.addHandler(stream_handler)
+    return logger

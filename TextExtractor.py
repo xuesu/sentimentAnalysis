@@ -1,5 +1,6 @@
 # coding=utf-8
 import os
+import jpype
 import codecs
 import pymongo
 
@@ -37,52 +38,29 @@ def storeTextFromDirectory(path, tag):
                 print e.message
 
 
-def cutTextFromDB():
-    thu = thulac.thulac()
-    records = hotel.find()
-    for record in records:
-        words = thu.cut(record['text'])
-        record['words'] = words
-        hotel.save(record)
-
-
-def splitRecord():
-    pass
-
-
-def deleteRareWords():
-    records = hotel.find()
-    records = [record for record in records]
-    dt = {}
-    for record in records:
-        for word in record["words"]:
-            dt[word[0]] = dt.get(word[0], 0) + 1
-    ls = [dt[word] for word in dt]
-    ls.sort()
-    voc_size = min([10000, len(dt)])
-    for word in dt:
-        if dt[word] < ls[-voc_size]:
-            dt[word] = u'RAREWORD'
-        else:
-            dt[word] = word
-    for record in records:
-        for i in range(len(record['words'])):
-            pure_word = dt[record['words'][i][0]]
-            if pure_word == u'RAREWORD':
-                pure_word += '_' + record['words'][i][1]
-            if len(record['words'][i]) < 3:
-                record['words'][i].append(pure_word)
-            else:
-                record['words'][i][2] = pure_word
-        hotel.save(record)
-
-
 def clear_record(text):
     text = text.replace("\r", "\n")
     while text.find("\n\n") != -1:
         text = text.replace("\n\n", "\n")
     return text
 
+
+class WordCutter(object):
+    def __init__(self):
+        lib_path = "ansj.paper/lib"
+        jars = os.listdir(lib_path)
+        jars_class_path = ':'.join([lib_path + jar for jar in jars])
+        jpype.startJVM(jpype.get_default_jvm_path(), "-ea", "-Djava.class.path="+jars_class_path)
+        ZHConverter = jpype.JClass("com.spreada.utils.chinese.ZHConverter")
+        self.zh_converter = ZHConverter.getInstance(ZHConverter.SIMPLIFIED)
+        LearnTool = jpype.JClass("org.ansj.dic.LearnTool")
+        NlpAnalysis = jpype.JClass("org.ansj.splitWord.analysis.NlpAnalysis")
+        self.nlp_analysis = NlpAnalysis()
+        self.learn_tool = LearnTool()
+        self.nlp_analysis.setLearnTool(self.learn_tool)
+
+    def __del__(self):
+        jpype.shutdownJVM()
+
 if __name__ == '__main__':
-    deleteRareWords()
-    records = hotel.find()
+    pass

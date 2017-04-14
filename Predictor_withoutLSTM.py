@@ -56,10 +56,12 @@ class Predictor:
             out_num = shape[1] * shape[2]
             self.reshaped = tf.reshape(self.concat_l1, [-1, out_num])
             self.dropout = tf.nn.dropout(self.reshaped, Mes.PRE_DROPOUT_KEEP)
-            # self.linear1 = tf.layers.dense(self.dropout, Mes.PRE_LINEAR1_SZ, name="Linear1")
-            # self.relu = tf.nn.relu(self.linear1)
-            self.logits = tf.layers.dense(self.dropout, Mes.PRE_LINEAR3_SZ, name="Linear2")
-            self.loss = tf.reduce_mean(tf.losses.softmax_cross_entropy(self.train_labels, self.logits))
+            self.linear1 = tf.layers.dense(self.dropout, Mes.PRE_LINEAR1_SZ, name="Linear1")
+            self.relu = tf.nn.relu(self.linear1)
+            self.logits = tf.layers.dense(self.relu, Mes.PRE_LINEAR3_SZ, name="Linear2")
+            self.softmax =tf.nn.softmax(self.logits)
+            self.log = tf.log(self.softmax)
+            self.loss = -tf.reduce_sum(tf.cast(self.train_labels, tf.float32) * self.log)
 
             self.global_step = tf.Variable(0, trainable=False)
             starter_learning_rate = Mes.PRE_E_LEARNING_RATE
@@ -74,8 +76,8 @@ class Predictor:
                         rnum=Mes.DG_RNUM, get_accuracy=False):
         batch_data, batch_labels, _ = nxt_method(batch_sz, rnum)
         feed_dict = {self.train_dataset: batch_data, self.train_labels: batch_labels}
-        _, logits, loss = session.run(
-            [self.optimizer, self.logits, self.loss], feed_dict=feed_dict)
+        _, logits, log, loss = session.run(
+            [self.optimizer, self.logits, self.log,self.loss], feed_dict=feed_dict)
         if get_accuracy:
             accuracy = Utils.accuracy(logits, batch_labels)
         else:
@@ -133,7 +135,7 @@ class Predictor:
                             os.mkdir(mid_dir)
                             self.saver.save(session, mid_dir + "/model")
                             shutil.copy("Mes.py", mid_dir + "/Mes.py")
-                            shutil.copy("Predictor.py", mid_dir + "/Predictor.py")
+                            shutil.copy("Predictor_withoutLSTM.py", mid_dir + "/Predictor.py")
                     average_train_accuracy = 0.0
                     average_loss = 0.0
             accuracy = self.test(session)
