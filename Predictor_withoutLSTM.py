@@ -103,6 +103,8 @@ class Predictor:
         return accuracy / self.validate_times
 
     def train(self):
+        train_accuracys = []
+        valid_accuracys = []
         try:
             os.mkdir(Mes.MODEL_SAVE_PATH)
         except OSError as e:
@@ -120,6 +122,8 @@ class Predictor:
                 if i % Mes.PRE_VALID_TIME == 0:
                     accuracy = self.validate(session)
                     average_train_accuracy /= Mes.PRE_VALID_TIME
+                    train_accuracys.append(average_train_accuracy)
+                    valid_accuracys.append(accuracy)
                     print "Average Loss at Step %d: %.10f" % (i, average_loss / Mes.PRE_VALID_TIME)
                     print "Average Train Accuracy %.2f%%" % (average_train_accuracy)
                     print "Validate Accuracy %.2f%%" % accuracy
@@ -139,6 +143,8 @@ class Predictor:
                     average_train_accuracy = 0.0
                     average_loss = 0.0
             accuracy = self.test(session)
+            with open(datetime.datetime.now().strftime("%y%m%d%H%M%S"), "w") as fout:
+                json.dump([train_accuracys, valid_accuracys], fout)
             print "Final Test Accuracy %.2f%%" % accuracy
 
 if __name__ == '__main__':
