@@ -224,5 +224,9 @@ class Predictor:
 
 if __name__ == '__main__':
     col = pymongo.MongoClient("localhost", 27017).paper[Mes.TRAIN_COL]
-    predictor = Predictor(col)
-    predictor.train()
+    for i in range(1, 11):
+        Mes.DG_FOLD_TEST_ID = i
+        Mes.DG_FOLD_VALID_ID = i + 1
+        Mes.MODEL_SAVE_PATH = "model_{}".format(i)
+        predictor = Predictor(col)
+        predictor.train()

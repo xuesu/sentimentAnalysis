@@ -92,7 +92,6 @@ class Predictor:
             [self.optimizer, self.logits, self.loss], feed_dict=feed_dict)
         if get_accuracy:
             accuracy = Utils.accuracy(logits, batch_labels)
-            print accuracy, loss
         else:
             accuracy = -1
         return loss, accuracy
@@ -181,8 +180,12 @@ class Predictor:
             logits = session.run([self.logits], feed_dict=feed_dict)[0]
         return logits
 
-
 if __name__ == '__main__':
     col = pymongo.MongoClient("localhost", 27017).paper[Mes.TRAIN_COL]
     predictor = Predictor(col)
-    predictor.train()
+    for i in range(1, 11):
+        Mes.DG_FOLD_TEST_ID = i
+        Mes.DG_FOLD_VALID_ID = i + 1
+        Mes.MODEL_SAVE_PATH_NOLSTM = "model_nolstm_{}".format(i)
+        predictor = Predictor(col)
+        predictor.train()
