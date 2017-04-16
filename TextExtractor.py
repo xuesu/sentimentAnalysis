@@ -49,7 +49,7 @@ class WordCutter(object):
     def __init__(self):
         lib_path = "ansj.paper/lib"
         jars = os.listdir(lib_path)
-        jars_class_path = ':'.join([lib_path + jar for jar in jars])
+        jars_class_path = ':'.join([os.path.join(lib_path,jar) for jar in jars])
         jpype.startJVM(jpype.get_default_jvm_path(), "-ea", "-Djava.class.path="+jars_class_path)
         ZHConverter = jpype.JClass("com.spreada.utils.chinese.ZHConverter")
         self.zh_converter = ZHConverter.getInstance(ZHConverter.SIMPLIFIED)
@@ -62,5 +62,18 @@ class WordCutter(object):
     def __del__(self):
         jpype.shutdownJVM()
 
+    def split(self, text):
+        text = self.zh_converter.convert(text)
+        result = self.nlp_analysis.parseStr(text)
+        result = result.getTerms()
+        ans = {"text": text, "words": []}
+        for term in result:
+            if term.getName() != "null":
+                word = [term.getName().strip(), term.getNatureStr().strip()]
+                if word[0] and word[1]:
+                    ans["words"].append(word)
+        return ans
+
 if __name__ == '__main__':
-    pass
+    cutter = WordCutter()
+    cutter.split(u"假设你要设置的属性名为 yourProperty，属性值为 yourValue 。")

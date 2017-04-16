@@ -19,7 +19,7 @@ class Word2Vec:
         self.natures = []
         self.sentences = []
         self.model = None
-        self.wv = []
+        self.wv = None
 
     def delete_rare_words(self):
         records = self.docs.find()
@@ -79,7 +79,7 @@ class Word2Vec:
 
 
 if __name__ == '__main__':
-    col = pymongo.MongoClient("localhost", 27017).paper.mobile
+    col = pymongo.MongoClient("localhost", 27017).paper[Mes.TRAIN_COL]
     w2v = Word2Vec(col)
     w2v.dump()
 

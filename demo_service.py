@@ -6,12 +6,17 @@ import traceback
 
 import Utils
 import demo_exceptions
+import TextExtractor
+import Predictor_withoutLSTM
+import Mes
 
 app = flask.Flask('demo')
 logger = Utils.init_logger("demo")
+cutter = TextExtractor.WordCutter()
+predictor_without_lstm = Predictor_withoutLSTM.Predictor(docs=None, trainable=False)
 
 
-def product_service_exception_handler(func):
+def service_exception_handler(func):
     @functools.wraps(func)
     def wrapper(*args, **kw):
         content = {
@@ -56,9 +61,31 @@ def product_service_exception_handler(func):
 
 
 @app.route("/split_words/", methods=["POST"])
+@service_exception_handler
 def split_words():
-    data = flask.request.data
+    content = {"msg": "", "data": {}, "url": "",
+               "error": {"type": "", "message": "", "message_chs": ""}}
+    headers = {"content-type": "application/json"}
+    data = json.loads(flask.request.data)
+    text = data["text"]
+    text = unicode(text)
+    word = cutter.split(text)
+    content["data"]["words"] = word
+    return json.dumps(content), flask_api.status.HTTP_200_OK, headers
+
+
+@app.route("/predict/", methods=["POST"])
+@service_exception_handler
+def prediction():
+    content = {"msg": "", "data": {}, "url": "",
+               "error": {"type": "", "message": "", "message_chs": ""}}
+    headers = {"content-type": "application/json"}
+    data = json.loads(flask.request.data)
+    logits = predictor_without_lstm.predict(data)
+    content["data"]["logits"] = logits.tolist()
+    content["data"]["words"] = data["words"]
+    return json.dumps(content), flask_api.status.HTTP_200_OK, headers
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(host="localhost", debug=True, port=Mes.DEMO_API_PORT)
