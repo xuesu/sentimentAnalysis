@@ -189,8 +189,8 @@ class Predictor:
                             self.best_accuracy_valid = accuracy
                             self.best_accuracy_test = test_accuracy
                             self.saver.save(session, Mes.MODEL_SAVE_PATH + "/model")
-                            with open(Mes.MODEL_SAVE_PATH + "/Mes.json", "w") as fout:
-                                json.dump(Mes, fout)
+                            shutil.copy("Mes.py", Mes.MODEL_SAVE_PATH + "/Mes.py")
+                            shutil.copy("Predictor.py", Mes.MODEL_SAVE_PATH + "/Predictor.py")
                     average_train_accuracy = 0.0
                     average_loss = 0.0
             accuracy = self.test(session)
@@ -224,9 +224,6 @@ class Predictor:
 
 if __name__ == '__main__':
     col = pymongo.MongoClient("localhost", 27017).paper[Mes.TRAIN_COL]
-    for i in range(1, 11):
-        Mes.DG_FOLD_TEST_ID = i
-        Mes.DG_FOLD_VALID_ID = i + 1
-        Mes.MODEL_SAVE_PATH = "model_{}".format(i)
-        predictor = Predictor(col)
-        predictor.train()
+    Mes.MODEL_SAVE_PATH = "model_{}_{}".format(Mes.DG_FOLD_TEST_ID, Mes.TRAIN_COL)
+    predictor = Predictor(col)
+    predictor.train()
