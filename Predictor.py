@@ -189,8 +189,8 @@ class Predictor:
                             self.best_accuracy_valid = accuracy
                             self.best_accuracy_test = test_accuracy
                             self.saver.save(session, Mes.MODEL_SAVE_PATH + "/model")
-                            shutil.copy("Mes.py", Mes.MODEL_SAVE_PATH + "/Mes.py")
-                            shutil.copy("Predictor.py", Mes.MODEL_SAVE_PATH + "/Predictor.py")
+                            with open(Mes.MODEL_SAVE_PATH + "/Mes.json", "w") as fout:
+                                json.dump(Mes, fout)
                     average_train_accuracy = 0.0
                     average_loss = 0.0
             accuracy = self.test(session)

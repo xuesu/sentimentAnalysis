@@ -80,7 +80,7 @@ class Predictor:
             self.writer = None
             self.merge_all = tf.summary.merge_all()
             self.saver = tf.train.Saver()
-            self.best_accuracy_valid = 90.0
+            self.best_accuracy_valid = 60.0
             self.best_accuracy_test = -1.0
 
     def train_sentences(self, session, nxt_method, batch_sz=Mes.DG_BATCH_SZ,
@@ -151,12 +151,12 @@ class Predictor:
                     if accuracy >= self.best_accuracy_valid:
                         test_accuracy = self.test(session)
                         print "Test Accuracy %.2f%%" % test_accuracy
-                        if test_accuracy >= 90 and average_train_accuracy >= 90:
+                        if test_accuracy >= 60 and average_train_accuracy >= 60:
                             self.best_accuracy_valid = accuracy
                             self.best_accuracy_test = test_accuracy
                             self.saver.save(session, Mes.MODEL_SAVE_PATH_NOLSTM + "/model")
-                            shutil.copy("Mes.py", Mes.MODEL_SAVE_PATH_NOLSTM + "/Mes.py")
-                            shutil.copy("Predictor.py", Mes.MODEL_SAVE_PATH_NOLSTM + "/Predictor.py")
+                            with open(Mes.MODEL_SAVE_PATH_NOLSTM + "/Mes.json", "w") as fout:
+                                json.dump(Mes, fout)
                     average_train_accuracy = 0.0
                     average_loss = 0.0
             accuracy = self.test(session)
@@ -183,7 +183,7 @@ class Predictor:
 if __name__ == '__main__':
     col = pymongo.MongoClient("localhost", 27017).paper[Mes.TRAIN_COL]
     predictor = Predictor(col)
-    for i in range(1, 11):
+    for i in range(5, 6):
         Mes.DG_FOLD_TEST_ID = i
         Mes.DG_FOLD_VALID_ID = i + 1
         Mes.MODEL_SAVE_PATH_NOLSTM = "model_nolstm_{}".format(i)

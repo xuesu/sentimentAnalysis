@@ -1,6 +1,7 @@
 import pymongo
 import matplotlib.pyplot as plt
 
+import Mes
 
 def draw_words_num(col_name):
     docs = pymongo.MongoClient("localhost", 27017).paper[col_name]
@@ -14,4 +15,5 @@ def draw_words_num(col_name):
     plt.axis('tight')
 
 if __name__ == '__main__':
-    draw_words_num("tmpdata")
+    draw_words_num("hotel_balanced")
+
