@@ -1,3 +1,5 @@
+# coding=utf-8
+
 import flask
 import functools
 import flask_api
@@ -7,13 +9,13 @@ import traceback
 import Utils
 import demo_exceptions
 import TextExtractor
-import Predictor_withoutLSTM
+import Predictor
 import Mes
 
 app = flask.Flask('demo')
 logger = Utils.init_logger("demo")
 cutter = TextExtractor.WordCutter()
-predictor_without_lstm = Predictor_withoutLSTM.Predictor(docs=None, trainable=False)
+predictor = Predictor.Predictor(docs=None, trainable=False)
 
 
 def service_exception_handler(func):
@@ -66,8 +68,7 @@ def split_words():
     content = {"msg": "", "data": {}, "url": "",
                "error": {"type": "", "message": "", "message_chs": ""}}
     headers = {"content-type": "application/json"}
-    data = json.loads(flask.request.data)
-    text = data["text"]
+    text = flask.request.form["text"]
     text = unicode(text)
     word = cutter.split(text)
     content["data"]["words"] = word
@@ -80,12 +81,22 @@ def prediction():
     content = {"msg": "", "data": {}, "url": "",
                "error": {"type": "", "message": "", "message_chs": ""}}
     headers = {"content-type": "application/json"}
-    data = json.loads(flask.request.data)
-    logits = predictor_without_lstm.predict(data)
+    text = flask.request.form["words"]
+    words = json.loads(text)
+    logits = predictor.predict(words)
+    rare_words = []
+    for word in words:
+        if word[2] != word[0]:
+            rare_words.append(word[0])
     content["data"]["logits"] = logits.tolist()
-    content["data"]["words"] = data["words"]
+    content["data"]["rare_words"] = ','.join(rare_words)
     return json.dumps(content), flask_api.status.HTTP_200_OK, headers
 
+
+@app.route("/", methods=["GET"])
+@service_exception_handler
+def index():
+    return flask.render_template('index.html')
 
 if __name__ == "__main__":
     app.run(host="localhost", debug=True, port=Mes.DEMO_API_PORT)

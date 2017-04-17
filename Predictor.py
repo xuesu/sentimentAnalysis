@@ -16,8 +16,6 @@ class Predictor:
     def __init__(self, docs=None, model_path=None, trainable=True):
         self.model_path = model_path
         self.data_generator = DataGenerator(docs, trainable)
-        self.validate_times = (self.data_generator.valid_sz - 1) // Mes.DG_TEST_BATCH_SZ + 1
-        self.test_times = (self.data_generator.test_sz - 1) // Mes.DG_TEST_BATCH_SZ + 1
 
         self.dg_voc_sz = self.data_generator.voc_sz
         self.graph = tf.Graph()
@@ -74,11 +72,11 @@ class Predictor:
                     self.loss = -tf.reduce_sum(tf.cast(self.train_labels, tf.float32) * self.log)
                     # tf.summary.scalar('loss', self.loss)
 
-                # with tf.name_scope("Accuracy") as sub_scope:
-                #     self.predictions = tf.equal(tf.argmax(self.logits, 1), tf.argmax(self.train_labels, 1))
-                #     with tf.name_scope("Train") as sub_scope2:
-                #         self.train_accuracy = tf.reduce_mean(tf.cast(self.predictions, "float"), name="Train_Accuracy")
-                #     tf.summary.scalar("train accuracy", self.train_accuracy)
+                    # with tf.name_scope("Accuracy") as sub_scope:
+                    #     self.predictions = tf.equal(tf.argmax(self.logits, 1), tf.argmax(self.train_labels, 1))
+                    #     with tf.name_scope("Train") as sub_scope2:
+                    #         self.train_accuracy = tf.reduce_mean(tf.cast(self.predictions, "float"), name="Train_Accuracy")
+                    #     tf.summary.scalar("train accuracy", self.train_accuracy)
                     # with tf.name_scope("Valid") as sub_scope2:
                     #     self.valid_accuracy = tf.reduce_mean(
                     # tf.cast(self.predictions, "float"), name="Valid_Accuracy")
@@ -94,10 +92,27 @@ class Predictor:
                                                                                          global_step=self.global_step)
                 # self.optimizer = tf.train.GradientDescentOptimizer(Mes.PRE_E_FIXED_RATE).minimize(self.loss)
             self.saver = tf.train.Saver()
-            self.writer = None
             self.merge_all = tf.summary.merge_all()
-            self.best_accuracy_valid = 90
+            self.best_accuracy_valid = Mes.PRE_GOOD_RATE
             self.best_accuracy_test = -1.0
+            if trainable:
+                self.validate_times = (self.data_generator.valid_sz - 1) // Mes.DG_TEST_BATCH_SZ + 1
+                self.test_times = (self.data_generator.test_sz - 1) // Mes.DG_TEST_BATCH_SZ + 1
+                self.session = tf.Session(graph=self.graph)
+                if model_path is not None:
+                    self.saver.restore(self.session, model_path)
+                else:
+                    init = tf.global_variables_initializer()
+                    self.session.run(init)
+            else:
+                if model_path is None and self.model_path is not None:
+                    model_path = self.model_path
+                if model_path is None:
+                    model_path = Mes.MODEL_SAVE_PATH + "/model"
+                self.session = tf.Session(graph=self.graph)
+                self.saver.restore(self.session, model_path)
+
+            self.writer = tf.summary.FileWriter(Mes.MODEL_SAVE_PATH + '/logs/', self.session.graph)
 
     def train_sentences(self, session, nxt_method, batch_sz=Mes.DG_BATCH_SZ,
                         rnum=Mes.DG_RNUM, get_accuracy=False):
@@ -157,73 +172,59 @@ class Predictor:
             os.mkdir(Mes.MODEL_SAVE_PATH)
         except OSError as e:
             print e
-        if model_path is None and self.model_path is not None:
-            model_path = self.model_path
-        with tf.Session(graph=self.graph) as session:
-            self.writer = tf.summary.FileWriter(Mes.MODEL_SAVE_PATH + '/logs/', session.graph)
-            if model_path is None:
-                init = tf.global_variables_initializer()
-                session.run(init)
-            else:
-                self.saver.restore(session, model_path)
-            average_loss = 0.0
-            average_train_accuracy = 0.0
-            for i in range(1, Mes.PRE_STEP_NUM):
-                l, train_accuracy = self.train_sentences(session, self.data_generator.next_train,
-                                                         Mes.DG_BATCH_SZ,
-                                                         Mes.DG_RNUM, True)
-                average_loss += l
-                average_train_accuracy += train_accuracy
-                if i % Mes.PRE_VALID_TIME == 0:
-                    accuracy = self.validate(session)
-                    average_train_accuracy /= Mes.PRE_VALID_TIME
-                    train_accuracys.append(average_train_accuracy)
-                    valid_accuracys.append(accuracy)
-                    print "Average Loss at Step %d: %.10f" % (i, average_loss / Mes.PRE_VALID_TIME)
-                    print "Average Train Accuracy %.2f%%" % (average_train_accuracy)
-                    print "Validate Accuracy %.2f%%" % accuracy
-                    if accuracy >= self.best_accuracy_valid:
-                        test_accuracy = self.test(session)
-                        print "Test Accuracy %.2f%%" % test_accuracy
-                        if test_accuracy >= 90 and average_train_accuracy >= 90:
-                            self.best_accuracy_valid = accuracy
-                            self.best_accuracy_test = test_accuracy
-                            self.saver.save(session, Mes.MODEL_SAVE_PATH + "/model")
-                            shutil.copy("Mes.py", Mes.MODEL_SAVE_PATH + "/Mes.py")
-                            shutil.copy("Predictor.py", Mes.MODEL_SAVE_PATH + "/Predictor.py")
-                    average_train_accuracy = 0.0
-                    average_loss = 0.0
-            accuracy = self.test(session)
-            fname = datetime.datetime.now().strftime("%y%m%d%H%M%S")
-            with open(fname, "w") as fout:
-                json.dump([train_accuracys, valid_accuracys], fout)
-            print "%s: Final Test Accuracy %.2f%%\n" \
-                  "Model Valid Accuracy %.2f%%\n" \
-                  "Model Test Accuracy %.2f%%\n" % (fname, accuracy,
-                                                    self.best_accuracy_valid, self.best_accuracy_test)
+        if model_path is not None:
+            self.saver.restore(self.session, model_path)
+        average_loss = 0.0
+        average_train_accuracy = 0.0
+        for i in range(1, Mes.PRE_STEP_NUM):
+            l, train_accuracy = self.train_sentences(self.session, self.data_generator.next_train,
+                                                     Mes.DG_BATCH_SZ,
+                                                     Mes.DG_RNUM, True)
+            average_loss += l
+            average_train_accuracy += train_accuracy
+            if i % Mes.PRE_VALID_TIME == 0:
+                accuracy = self.validate(self.session)
+                average_train_accuracy /= Mes.PRE_VALID_TIME
+                train_accuracys.append(average_train_accuracy)
+                valid_accuracys.append(accuracy)
+                print "Average Loss at Step %d: %.10f" % (i, average_loss / Mes.PRE_VALID_TIME)
+                print "Average Train Accuracy %.2f%%" % (average_train_accuracy)
+                print "Validate Accuracy %.2f%%" % accuracy
+                if accuracy >= self.best_accuracy_valid:
+                    test_accuracy = self.test(self.session)
+                    print "Test Accuracy %.2f%%" % test_accuracy
+                    if test_accuracy >= 90 and average_train_accuracy >= 90:
+                        self.best_accuracy_valid = accuracy
+                        self.best_accuracy_test = test_accuracy
+                        self.saver.save(self.session, Mes.MODEL_SAVE_PATH + "/model")
+                        shutil.copy("Mes.py", Mes.MODEL_SAVE_PATH + "/Mes.py")
+                        shutil.copy("Predictor.py", Mes.MODEL_SAVE_PATH + "/Predictor.py")
+                average_train_accuracy = 0.0
+                average_loss = 0.0
+        accuracy = self.test(self.session)
+        fname = datetime.datetime.now().strftime("%y%m%d%H%M%S")
+        with open(fname, "w") as fout:
+            json.dump([train_accuracys, valid_accuracys], fout)
+        print "%s: Final Test Accuracy %.2f%%\n" \
+              "Model Valid Accuracy %.2f%%\n" \
+              "Model Test Accuracy %.2f%%\n" % (fname, accuracy,
+                                                self.best_accuracy_valid, self.best_accuracy_test)
 
-    def predict(self, record, model_path=None):
-        if model_path is None and self.model_path is not None:
-            model_path = self.model_path
-        if model_path is None:
-            model_path = Mes.MODEL_SAVE_PATH + ".model"
-        with tf.Session(graph=self.graph) as session:
-            self.saver.restore(session, model_path)
-            batches = self.data_generator.splitted_record2vec(record)
-            state = [numpy.zeros([1, sz], dtype=float) for sz in self.lstm.state_size]
-            logits = None
-            feed_dict = {self.dropout_keep_prob: 1.0}
-            for batch_data in batches:
-                feed_dict[self.train_dataset] = batch_data
-                for i in range(2):
-                    feed_dict[self.state[i][j].name] = state[i][j]
-                logits, new_state = session.run([self.logits, self.new_state], feed_dict=feed_dict)
-                state = new_state
-        return logits
+    def predict(self, words, model_path=None):
+        batches = self.data_generator.split_words2vec(words)
+        feed_dict = {self.dropout_keep_prob: 1.0}
+        state = [numpy.zeros([1, sz], dtype=float) for sz in self.lstm.state_size]
+        logits = None
+        for batch_data in batches:
+            feed_dict[self.train_dataset] = batch_data
+            for i in range(2):
+                feed_dict[self.state[i].name] = state[i]
+            logits, new_state = self.session.run([self.logits, self.new_state], feed_dict=feed_dict)
+            state = new_state
+        return logits[0]
 
 
 if __name__ == '__main__':
     col = pymongo.MongoClient("localhost", 27017).paper[Mes.TRAIN_COL]
-    Mes.MODEL_SAVE_PATH = "model_{}_{}".format(Mes.DG_FOLD_TEST_ID, Mes.TRAIN_COL)
     predictor = Predictor(col)
     predictor.train()

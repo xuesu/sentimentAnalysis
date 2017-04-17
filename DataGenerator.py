@@ -53,13 +53,13 @@ class DataGenerator:
                    or (exclusive_ids is not None and record["fold_id"] not in exclusive_ids)]
         return dataset, labels
 
-    def splitted_record2vec(self, record):
-        record['words'] = self.delete_rare_word(record['words'])
-        words_sz = len(record['words'])
+    def split_words2vec(self, words):
+        words = self.delete_rare_word(words)
+        words_sz = len(words)
         ans = []
         ind = 0
         while ind < words_sz:
-            ans.append(numpy.array([self.words2vec(record['words'], ind)]))
+            ans.append(numpy.array([self.words2vec(words, ind)]))
             ind += self.sentence_sz
         return ans
 
@@ -68,11 +68,11 @@ class DataGenerator:
             if len(word) == 2:
                 word.append(None)
             if word[0] in self.words:
-                word[2] = self.words_id[word[0]]
+                word[2] = word[0]
             else:
-                word_del_rare = u'{}_{}'.format(Mes.W2V_RARE_WORD, word[0])
+                word_del_rare = u'{}_{}'.format(Mes.W2V_RARE_WORD, word[1])
                 if word_del_rare in self.words:
-                    word[2] = self.words_id[word_del_rare]
+                    word[2] = word_del_rare
         return words
 
     # UNUsed
@@ -87,7 +87,7 @@ class DataGenerator:
         ans = []
         words_sz = len(words)
         for i in range(ind, ind + self.sentence_sz):
-            if i < words_sz:
+            if i < words_sz and words[i][2] is not None:
                 ans.append(self.words_id.get(words[i][2], 0))
             else:
                 ans.append(0)

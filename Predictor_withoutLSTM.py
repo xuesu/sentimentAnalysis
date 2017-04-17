@@ -17,8 +17,10 @@ class Predictor:
         self.model_path = model_path
         self.trainable = trainable
         self.data_generator = DataGenerator(docs, trainable, truncated=True)
-        self.validate_times = (self.data_generator.valid_sz - 1) // Mes.DG_TEST_BATCH_SZ + 1
-        self.test_times = (self.data_generator.test_sz - 1) // Mes.DG_TEST_BATCH_SZ + 1
+
+        if trainable:
+            self.validate_times = (self.data_generator.valid_sz - 1) // Mes.DG_TEST_BATCH_SZ + 1
+            self.test_times = (self.data_generator.test_sz - 1) // Mes.DG_TEST_BATCH_SZ + 1
 
         self.dg_voc_sz = self.data_generator.voc_sz
         self.graph = tf.Graph()
@@ -182,7 +184,6 @@ class Predictor:
 
 if __name__ == '__main__':
     col = pymongo.MongoClient("localhost", 27017).paper[Mes.TRAIN_COL]
-    Mes.MODEL_SAVE_PATH_NOLSTM = "model_nolstm_{}_{}".format(Mes.DG_FOLD_TEST_ID, Mes.TRAIN_COL)
     predictor = Predictor(col)
     predictor.train()
 

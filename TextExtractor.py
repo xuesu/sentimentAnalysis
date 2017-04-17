@@ -66,12 +66,12 @@ class WordCutter(object):
         text = self.zh_converter.convert(text)
         result = self.nlp_analysis.parseStr(text)
         result = result.getTerms()
-        ans = {"text": text, "words": []}
+        ans = []
         for term in result:
             if term.getName() != "null":
                 word = [term.getName().strip(), term.getNatureStr().strip()]
                 if word[0] and word[1]:
-                    ans["words"].append(word)
+                    ans.append(word)
         return ans
 
 if __name__ == '__main__':
