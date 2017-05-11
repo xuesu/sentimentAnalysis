@@ -98,10 +98,7 @@ class DataGenerator:
         ans = [0] * Mes.LABEL_NUM
         if label is None:
             return ans
-        if label == -1:
-            ans[0] = 1
-        elif label == 1:
-            ans[1] = 1
+        ans[label + 1] = 1
         return ans
 
     @staticmethod

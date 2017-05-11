@@ -13,6 +13,8 @@ class Word2Vec:
     def __init__(self, docs):
         # data
         self.docs = docs
+        self.records = self.docs.find() if self.docs is not None else []
+        self.records = [record for record in self.records]
         self.words_id = {}
         self.words = []
         self.natures_id = {}
@@ -22,35 +24,41 @@ class Word2Vec:
         self.wv = None
 
     def delete_rare_words(self):
-        records = self.docs.find()
-        records = [record for record in records]
         dt = {}
-        for record in records:
+        for record in self.records:
             for word in record["words"]:
                 dt[word[0]] = dt.get(word[0], 0) + 1
-        ls = [dt[word] for word in dt]
-        ls.sort()
-        voc_size = min([Mes.W2V_VOC_LIMIT, len(dt)])
-        for word in dt:
-            if dt[word] < ls[-voc_size]:
-                dt[word] = Mes.W2V_RARE_WORD
-            else:
-                dt[word] = word
-        for record in records:
+        for record in self.records:
             for i in range(len(record['words'])):
-                pure_word = dt[record['words'][i][0]]
-                if pure_word == Mes.W2V_RARE_WORD:
-                    pure_word = '{}_{}'.format(pure_word, record['words'][i][1])
+                if dt[record['words'][i][0]] >= Mes.W2V_VOC_LIMIT:
+                    pure_word = record['words'][i][0]
+                else:
+                    pure_word = '{}_{}'.format(Mes.W2V_RARE_WORD, record['words'][i][1])
                 if len(record['words'][i]) < 3:
                     record['words'][i].append(pure_word)
                 else:
                     record['words'][i][2] = pure_word
             self.docs.save(record)
 
+    def score2tag(self):
+        for record in self.records:
+            if "rank" in record:
+                try:
+                    record["rank"] = float(record["rank"])
+                    if record["rank"] < 3.95:
+                        record["tag"] = -1
+                    elif record["rank"] > 4.95:
+                        record["tag"] = 1
+                    else:
+                        record["tag"] = 0
+                    self.docs.save(record)
+                except ValueError:
+                    self.docs.remove(record)
+
     def word2one_hot(self):
+        self.score2tag()
         self.delete_rare_words()
-        records = self.docs.find()
-        for record in records:
+        for record in self.records:
             sub_data = []
             for word in record['words']:
                 if word[1] not in self.natures_id:
@@ -61,6 +69,9 @@ class Word2Vec:
                     self.words.append(word[2])
                 sub_data.append(word[2])
             self.sentences.append(sub_data)
+        print ("words number", len(self.words))
+        print ("natures number", len(self.natures))
+        print("sentences number", len(self.sentences))
 
     def word2vec(self):
         self.word2one_hot()
@@ -81,5 +92,6 @@ class Word2Vec:
 if __name__ == '__main__':
     col = pymongo.MongoClient("localhost", 27017).paper[Mes.TRAIN_COL]
     w2v = Word2Vec(col)
+    # w2v.score2tag()
     w2v.dump()
 

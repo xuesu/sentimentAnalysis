@@ -1,7 +1,12 @@
+# coding=utf-8
+
+import json
 import pymongo
 import matplotlib.pyplot as plt
+import random
 
 import Mes
+
 
 def draw_words_num(col_name):
     docs = pymongo.MongoClient("localhost", 27017).paper[col_name]
@@ -14,6 +19,63 @@ def draw_words_num(col_name):
     plt.show()
     plt.axis('tight')
 
-if __name__ == '__main__':
-    draw_words_num("hotel_balanced")
 
+def draw_several_accuracy_plots(in_names, labels, gap, sz, title):
+    assert(len(in_names) == len(labels))
+    train_accuracies = []
+    valid_accuracies = []
+    x = [i * gap for i in range(sz)]
+    num = len(in_names)
+    for in_name in in_names:
+        with open(in_name) as fin:
+            data = json.load(fin)
+            train_accuracies.append(data[0][:sz])
+            valid_accuracies.append(data[1][:sz])
+    alpha_start = 0.2
+    alpha_end = 1.0
+    alpha_gap = (alpha_end - alpha_start) / num
+    train_color = 'g'
+    valid_color = 'b'
+    for i in range(num):
+        alpha = alpha_end - alpha_gap * i
+        plt.plot(x, train_accuracies[i], color=train_color, alpha=alpha, label=labels[i] + " train")
+        plt.plot(x, valid_accuracies[i], color=valid_color, alpha=alpha, label=labels[i] + " valid")
+    plt.xlabel("Training Iteration")
+    plt.ylabel("Accuracy(%)")
+    plt.axis('tight')
+    plt.title(title)
+    plt.legend(loc='upper left')
+    plt.savefig(title + ".png")
+    plt.show()
+
+
+def create_new_col(col_name, new_col_name, words_num, tag_num):
+    docs = pymongo.MongoClient("localhost", 27017).paper[col_name]
+    new_docs = pymongo.MongoClient("localhost", 27017).paper[new_col_name]
+    new_docs.drop()
+    records = docs.find()
+    valid_records = {}
+    for record in records:
+        if len(record["words"]) <= words_num:
+            if record["tag"] not in valid_records:
+                valid_records[record["tag"]] = []
+            valid_records[record["tag"]].append(record)
+    for tag in [-1, 1]:
+        random.shuffle(valid_records[tag])
+    for tag in [-1, 1]:
+        for record in valid_records[tag][:tag_num]:
+            new_docs.save(record)
+
+
+def show_text_by_tag(col_name, tag, limit):
+    docs = pymongo.MongoClient("localhost", 27017).paper[col_name]
+    records = docs.find({"tag": tag})
+    records = [record for record in records][:limit]
+    for record in records:
+        print record["text"]
+
+
+if __name__ == '__main__':
+    # draw_words_num("tmpdata")
+    create_new_col("tmpdata", "xiecheng100", 100, 11000)
+    # show_text_by_tag("tmpdata", 0, 1500)

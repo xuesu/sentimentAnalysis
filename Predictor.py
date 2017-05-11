@@ -8,12 +8,15 @@ import tensorflow as tf
 
 import Mes
 import Utils
+import Word2Vec
 
 from DataGenerator import DataGenerator
 
 
 class Predictor:
     def __init__(self, docs=None, model_path=None, trainable=True):
+        self.name = raw_input("Please input name:")
+        Mes.MODEL_SAVE_PATH += self.name
         self.model_path = model_path
         self.data_generator = DataGenerator(docs, trainable)
 
@@ -40,6 +43,8 @@ class Predictor:
             with tf.name_scope("Convnet") as scope:
                 self.convs_l1 = []
                 self.pools_l1 = []
+                self.convs_l2 = []
+                self.pools_l2 = []
                 for conv_knum, conv_stride, pool_size, pool_stride in zip(Mes.PRE_CONVS_L1_KERNEL_NUM,
                                                                           Mes.PRE_CONVS_L1_STRIDE,
                                                                           Mes.PRE_POOLS_L1_SIZE,
@@ -49,11 +54,20 @@ class Predictor:
                     pool = tf.layers.max_pooling1d(conv, pool_size, pool_stride, padding="same")
                     self.convs_l1.append(conv)
                     self.pools_l1.append(pool)
-                self.concat_l1 = tf.concat(self.pools_l1, 2, name="Convnet_Concat_Level1")
+                    for conv2_knum, conv2_stride, pool2_size, pool2_stride in zip(Mes.PRE_CONVS_L2_KERNEL_NUM,
+                                                                                  Mes.PRE_CONVS_L2_STRIDE,
+                                                                                  Mes.PRE_POOLS_L2_SIZE,
+                                                                                  Mes.PRE_POOLS_L2_STRIDE):
+                        conv2 = tf.layers.conv1d(pool, Mes.PRE_CONV_L2_FILTER_NUM, conv2_knum, conv2_stride,
+                                                 use_bias=True, activation=tf.nn.relu, padding="same")
+                        pool2 = tf.layers.max_pooling1d(conv2, pool2_size, pool2_stride, padding="same")
+                        self.convs_l2.append(conv2)
+                        self.pools_l2.append(pool2)
+                self.concat_l2 = tf.concat(self.pools_l2, 1, name="Convnet_Concat_Level2")
             with tf.name_scope("Dropout") as scope:
-                shape = self.concat_l1.get_shape().as_list()
+                shape = self.concat_l2.get_shape().as_list()
                 out_num = shape[1] * shape[2]
-                self.reshaped = tf.reshape(self.concat_l1, [-1, out_num])
+                self.reshaped = tf.reshape(self.concat_l2, [-1, out_num])
                 self.dropout_keep_prob = tf.placeholder(tf.float32, name="Dropout_Keep_Probability")
                 self.dropout = tf.nn.dropout(self.reshaped, self.dropout_keep_prob)
             with tf.name_scope("Linear1") as scope:
@@ -64,8 +78,10 @@ class Predictor:
                 self.state = [tf.placeholder(tf.float32, shape=[None, self.lstm.state_size[0]], name="LSTM_State_C"),
                               tf.placeholder(tf.float32, shape=[None, self.lstm.state_size[1]], name="LSTM_State_H")]
                 self.lstm_output, self.new_state = self.lstm(self.relu, self.state)
+            with tf.name_scope("Linear") as scope:
+                self.linear2 = tf.layers.dense(self.lstm_output, Mes.PRE_LINEAR2_SZ)
             with tf.name_scope("Output") as scope:
-                self.logits = tf.layers.dense(self.lstm_output, Mes.PRE_LINEAR3_SZ, name="Logits")
+                self.logits = tf.layers.dense(self.linear2, Mes.PRE_LINEAR3_SZ, name="Logits")
                 with tf.name_scope("Loss") as sub_scope:
                     self.softmax = tf.nn.softmax(self.logits)
                     self.log = tf.log(self.softmax)
@@ -176,7 +192,7 @@ class Predictor:
             self.saver.restore(self.session, model_path)
         average_loss = 0.0
         average_train_accuracy = 0.0
-        for i in range(1, Mes.PRE_STEP_NUM):
+        for i in range(Mes.PRE_STEP_NUM):
             l, train_accuracy = self.train_sentences(self.session, self.data_generator.next_train,
                                                      Mes.DG_BATCH_SZ,
                                                      Mes.DG_RNUM, True)
@@ -193,24 +209,25 @@ class Predictor:
                 if accuracy >= self.best_accuracy_valid:
                     test_accuracy = self.test(self.session)
                     print "Test Accuracy %.2f%%" % test_accuracy
-                    if test_accuracy >= 90 and average_train_accuracy >= 90:
+                    if test_accuracy >= Mes.PRE_GOOD_RATE and average_train_accuracy >= Mes.PRE_GOOD_RATE:
                         self.best_accuracy_valid = accuracy
                         self.best_accuracy_test = test_accuracy
                         self.saver.save(self.session, Mes.MODEL_SAVE_PATH + "/model")
-                        shutil.copy("Mes.py", Mes.MODEL_SAVE_PATH + "/Mes.py")
-                        shutil.copy("Predictor.py", Mes.MODEL_SAVE_PATH + "/Predictor.py")
                 average_train_accuracy = 0.0
                 average_loss = 0.0
         accuracy = self.test(self.session)
-        fname = datetime.datetime.now().strftime("%y%m%d%H%M%S")
+        fname = Mes.MODEL_SAVE_PATH + "/accuracy.json"
         with open(fname, "w") as fout:
             json.dump([train_accuracys, valid_accuracys], fout)
+        fname = Mes.MODEL_SAVE_PATH + "/result.txt"
+        with open(fname, "w") as fout:
+            json.dump([accuracy, self.best_accuracy_valid, self.best_accuracy_test], fout)
         print "%s: Final Test Accuracy %.2f%%\n" \
               "Model Valid Accuracy %.2f%%\n" \
               "Model Test Accuracy %.2f%%\n" % (fname, accuracy,
                                                 self.best_accuracy_valid, self.best_accuracy_test)
 
-    def predict(self, words, model_path=None):
+    def predict(self, words):
         batches = self.data_generator.split_words2vec(words)
         feed_dict = {self.dropout_keep_prob: 1.0}
         state = [numpy.zeros([1, sz], dtype=float) for sz in self.lstm.state_size]
@@ -227,4 +244,6 @@ class Predictor:
 if __name__ == '__main__':
     col = pymongo.MongoClient("localhost", 27017).paper[Mes.TRAIN_COL]
     predictor = Predictor(col)
+    # predictor = Predictor(col,
+    #                       model_path="/home/iris/project/sentimentAnalysis/data/mobile/model_0_tmpdata_sentense25/model")
     predictor.train()
