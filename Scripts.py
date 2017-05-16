@@ -3,6 +3,8 @@
 import json
 import pymongo
 import matplotlib.pyplot as plt
+import nltk
+import xml.dom.minidom as minidom
 import random
 
 import Mes
@@ -75,7 +77,51 @@ def show_text_by_tag(col_name, tag, limit):
         print record["text"]
 
 
+def restore_semval_14(col_name, fname):
+    docs = pymongo.MongoClient("localhost", 27017).paper[col_name]
+    stemmer = nltk.stem.SnowballStemmer("english")
+    tree = minidom.parse(fname)
+    sentences = tree.documentElement.getElementsByTagName("sentence")
+    polarity2tag = {"negative": 0, "neutral": 1, "positive": 2, "conflict": 3}
+    for sentence in sentences:
+        record = dict()
+        text = sentence.getElementsByTagName("text")[0].firstChild.data
+        record["text"] = text
+        words = nltk.word_tokenize(text)
+        words = [word if word != u'``' and word != '\'\'' else "\"" for word in words]
+        pos_tags = [word[1] for word in nltk.pos_tag(words)]
+        record["words"] = []
+        for word, pos in zip(words, pos_tags):
+            word_mes = [word.lower(), pos, stemmer.stem(word), word[0].isupper(), word.isupper(), -1]
+            record["words"].append(word_mes)
+        record["aspectTerm"] = []
+        aspect_terms = sentence.getElementsByTagName("aspectTerm")
+        inds = [0] * len(text)
+        ind = 0
+        for i, word in enumerate(words):
+            for char in word:
+                while text[ind] != char:
+                    inds[ind] = inds[ind - 1] if ind > 0 else 0
+                    ind += 1
+                inds[ind] = i
+                ind += 1
+        for aspect in aspect_terms:
+            term = {
+                "term": aspect.getAttribute("term"),
+                "polarity": polarity2tag[aspect.getAttribute("polarity")],
+                "from": int(aspect.getAttribute("from")),
+                "to": int(aspect.getAttribute("to"))
+            }
+            record["aspectTerm"].append(term)
+            for i in range(term["from"], term["to"]):
+                record["words"][inds[i]][5] = term["polarity"]
+        record["tag"] = [word[5] for word in record["words"]]
+        docs.save(record)
+    print "Save %d sentences." % len(sentences)
+
+
 if __name__ == '__main__':
     # draw_words_num("tmpdata")
-    create_new_col("tmpdata", "xiecheng100", 100, 11000)
+    # create_new_col("tmpdata", "xiecheng100", 100, 11000)
     # show_text_by_tag("tmpdata", 0, 1500)
+    restore_semval_14("semval14", "/home/iris/PycharmProjects/sentimentAnalysis/data/SemEval14ABSA/Laptop_Train_v2.xml")
