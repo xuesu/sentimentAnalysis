@@ -43,8 +43,11 @@ def plot(embeddings, labels, filename):
 
 
 def accuracy(predictions, labels):
-    return (100.0 * numpy.sum(numpy.argmax(predictions, 1) == numpy.argmax(labels, 1))
-            / predictions.shape[0])
+    num = 1
+    for shape in predictions.shape[:-1]:
+        num *= shape
+    return (100.0 * numpy.sum(numpy.argmax(predictions, -1) == numpy.argmax(labels, -1))
+            /num)
 
 
 def init_logger(name):
