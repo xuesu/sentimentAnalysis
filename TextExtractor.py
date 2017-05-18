@@ -49,8 +49,8 @@ class WordCutter(object):
     def __init__(self):
         lib_path = "ansj.paper/lib"
         jars = os.listdir(lib_path)
-        jars_class_path = ':'.join([os.path.join(lib_path,jar) for jar in jars])
-        jpype.startJVM(jpype.get_default_jvm_path(), "-ea", "-Djava.class.path="+jars_class_path)
+        jars_class_path = ':'.join([os.path.join(lib_path, jar) for jar in jars])
+        jpype.startJVM(jpype.get_default_jvm_path(), "-ea", "-Djava.class.path=" + jars_class_path)
         ZHConverter = jpype.JClass("com.spreada.utils.chinese.ZHConverter")
         self.zh_converter = ZHConverter.getInstance(ZHConverter.SIMPLIFIED)
         LearnTool = jpype.JClass("org.ansj.dic.LearnTool")
@@ -73,6 +73,7 @@ class WordCutter(object):
                 if word[0] and word[1]:
                     ans.append(word)
         return ans
+
 
 if __name__ == '__main__':
     cutter = WordCutter()

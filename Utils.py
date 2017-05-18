@@ -1,34 +1,17 @@
 # coding=utf-8
 
-import re
+import os
+import pymongo
 import logging
 import numpy
 import matplotlib.pyplot as plt
 import sys
 
 from matplotlib.font_manager import FontProperties
-
-valid_tPunc = [u'。', u'！', u'）', u'!', u'”', u'？', u'?', u'…']
-
-
-def isTPunc(word):
-    if re.match("\s*$", word[0]) is not None:
-        return True
-    if word[0] in valid_tPunc:
-        return True
+import Mes
 
 
-def printableStr(word):
-    if not isinstance(word, unicode):
-        word = unicode(word)
-    if word == u'\n' or word == u'\r':
-        return u"\\n"
-    if word == u' ':
-        return u'_'
-    return word
-
-
-def plot(embeddings, labels, filename):
+def plot_emb(embeddings, labels, filename):
     plt.rcParams['axes.unicode_minus'] = False  # 用来正常显示负号
     font = FontProperties('Droid Sans Fallback')
     assert embeddings.shape[0] >= len(labels), 'More labels than embeddings'
@@ -47,17 +30,21 @@ def accuracy(predictions, labels):
     for shape in predictions.shape[:-1]:
         num *= shape
     return (100.0 * numpy.sum(numpy.argmax(predictions, -1) == numpy.argmax(labels, -1))
-            /num)
+            / num)
 
 
 def init_logger(name):
     logger = logging.getLogger(name)
     logger.setLevel(logging.INFO)
     formatter = logging.Formatter('%(asctime)s %(levelname)-8s %(message)s', '%a, %d %b %Y %H:%M:%S')
-    file_handler = logging.FileHandler("{}.log".format(name))
+    file_handler = logging.FileHandler(os.path.join(Mes.DEFAULT_LOG_DIR, "{}.log".format(name)))
     file_handler.setFormatter(formatter)
     stream_handler = logging.StreamHandler(sys.stdout)
     stream_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
     logger.addHandler(stream_handler)
     return logger
+
+
+def get_docs(col_name):
+    return pymongo.MongoClient(Mes.DEFAULT_MONGO_HOST, Mes.DEFAULT_MONGO_PORT)[Mes.DEFAULT_MONGO_DB][col_name]

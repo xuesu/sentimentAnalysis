@@ -8,7 +8,7 @@ class PlainPredictor:
     def __init__(self, hownet, hotel):
         # self.perception = [record for record in hownet.find({"label": "perception"})]
         self.emotion = [record for record in hownet.find({"label": "emotion"})]
-        self.adv = [record for record in hownet.find({"label":"adv"})]
+        self.adv = [record for record in hownet.find({"label": "adv"})]
         self.test_records = hotel.find()
         self.test_records = [record for record in self.test_records]
 
