@@ -3,11 +3,11 @@
 import json
 import pymongo
 import matplotlib.pyplot as plt
-import nltk
-import xml.dom.minidom as minidom
 import random
+import xml.dom.minidom as minidom
 
 import Mes
+import TextExtractor
 
 
 def draw_words_num(col_name):
@@ -79,7 +79,7 @@ def show_text_by_tag(col_name, tag, limit):
 
 def restore_semval_14(col_name, fname):
     docs = pymongo.MongoClient("localhost", 27017).paper[col_name]
-    stemmer = nltk.stem.SnowballStemmer("english")
+    cutter = TextExtractor.WordCutterEN()
     tree = minidom.parse(fname)
     sentences = tree.documentElement.getElementsByTagName("sentence")
     polarity2tag = {"negative": 0, "neutral": 1, "positive": 2, "conflict": 3}
@@ -87,13 +87,8 @@ def restore_semval_14(col_name, fname):
         record = dict()
         text = sentence.getElementsByTagName("text")[0].firstChild.data
         record["text"] = text
-        words = nltk.word_tokenize(text)
-        words = [word if word != u'``' and word != '\'\'' else "\"" for word in words]
-        pos_tags = [word[1] for word in nltk.pos_tag(words)]
-        record["words"] = []
-        for word, pos in zip(words, pos_tags):
-            word_mes = [word.lower(), pos, stemmer.stem(word), word[0].isupper(), word.isupper(), -1]
-            record["words"].append(word_mes)
+        record["words"] = cutter.split(text)
+        words = [word[3] for word in record["words"]]
         record["aspectTerm"] = []
         aspect_terms = sentence.getElementsByTagName("aspectTerm")
         inds = [0] * len(text)
@@ -114,8 +109,8 @@ def restore_semval_14(col_name, fname):
             }
             record["aspectTerm"].append(term)
             for i in range(term["from"], term["to"]):
-                record["words"][inds[i]][5] = term["polarity"]
-        record["tag"] = [word[5] for word in record["words"]]
+                record["words"][inds[i]][2] = term["polarity"]
+        record["tag"] = [word[2] for word in record["words"]]
         docs.save(record)
     print "Save %d sentences." % len(sentences)
 
@@ -124,4 +119,4 @@ if __name__ == '__main__':
     # draw_words_num("tmpdata")
     # create_new_col("tmpdata", "xiecheng100", 100, 11000)
     # show_text_by_tag("tmpdata", 0, 1500)
-    restore_semval_14("semval14", "/home/iris/PycharmProjects/sentimentAnalysis/data/SemEval14ABSA/Laptop_Train_v2.xml")
+    restore_semval_14("semval14", "data/SemEval14ABSA/Laptop_Train_v2.xml")

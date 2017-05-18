@@ -3,8 +3,6 @@ from __future__ import print_function
 
 import gensim
 import json
-import os
-import pymongo
 import numpy
 import nltk
 
@@ -16,8 +14,17 @@ class Word2Vec:
     def __init__(self, mes):
         # data
         self.mes = mes
-        self.docs = Utils.get_docs(mes.train_col)
-
+        self.docs = Utils.get_docs(self.mes.train_col)
+        assert(len(self.mes.config['W2V_FILTER_NATURES']) == len(self.mes.config['W2V_VOC_LIMITS']))
+        assert(len(self.mes.config['W2V_DELETE_RARE_WORD_FFIDS']) == len(self.mes.config['W2V_DELETE_RARE_WORD_TFIDS']))
+        assert(len(self.mes.config['W2V_TRAIN_FIDS']) == len(self.mes.config['W2V_TRAIN_FIDS_EMB_SZ']))
+        self.filter_natures = self.mes.config['W2V_FILTER_NATURES']
+        self.voc_limits = self.mes.config['W2V_VOC_LIMITS']
+        self.delete_rare_word_ffids = self.mes.config['W2V_DELETE_RARE_WORD_FFIDS']
+        self.delete_rare_word_tfids = self.mes.config['W2V_DELETE_RARE_WORD_TFIDS']
+        self.one_hot_fids = self.mes.config['W2V_ONE_HOT_FIDS']
+        self.train_fids = self.mes.config['W2V_TRAIN_FIDS']
+        self.train_fids_emb_sz = self.mes.config['W2V_TRAIN_FIDS_EMB_SZ']
 
     def delete_rare_words(self, ffid, tfid, nature_filter=None):
         records = [record for record in self.docs.find()]
@@ -29,7 +36,7 @@ class Word2Vec:
             for word in record["words"]:
                 while len(word) <= tfid:
                     word.append(None)
-                if nature_filter is not None and nature_filter(word[1], word[ffid], dt.get(word[ffid], 0)):
+                if nature_filter is not None and nature_filter(self, word[1], word[ffid], dt.get(word[ffid], 0)):
                     word[tfid] = "{}_{}".format(Mes.DEFAULT_RARE_WORD, word[1])
                 else:
                     word[tfid] = word[ffid]
@@ -76,7 +83,7 @@ class Word2Vec:
 
     def word2vec(self, fid, emb_sz):
         records = [record for record in self.docs.find()]
-        with open(mes.get_feature_path(fid)) as fin:
+        with open(self.mes.get_feature_path(fid)) as fin:
             features = json.load(fin)
         sentences = []
         for record in records:
@@ -92,32 +99,28 @@ class Word2Vec:
         print ("features_%d has been Trained!" % fid)
         return wv
 
-    @staticmethod
-    def nature_filter(nature, feature, frequency):
-        if nature not in mes.config['W2V_FILTER_NATURES']:
+    def nature_filter(self, nature, feature_value, frequency):
+        if nature not in self.filter_natures:
             return False
-        ind = mes.config['W2V_FILTER_NATURES'].index(nature)
-        return mes.config['W2V_VOC_LIMIT'][ind] > frequency
+        ind = self.filter_natures.index(nature)
+        return self.voc_limits[ind] > frequency
 
     def dump(self):
         self.score2tag()
-        assert(len(mes.config['W2V_FILTER_NATURES']) == len(mes.config['W2V_VOC_LIMIT']))
-        assert(len(mes.config['W2V_DELETE_RARE_WORD_FFIDS']) == len(mes.config['W2V_DELETE_RARE_WORD_TFIDS']))
-        if mes.config['LANG'] == 'en' and mes.config['W2V_STEM']:
+        if self.mes.config['LANG'] == 'en' and self.mes.config['W2V_STEM']:
             self.stem_en()
-        for ffid, tfid in zip(mes.config['W2V_DELETE_RARE_WORD_FFIDS'], mes.config['W2V_DELETE_RARE_WORD_TFIDS']):
+        for ffid, tfid in zip(self.delete_rare_word_ffids, self.delete_rare_word_tfids):
             self.delete_rare_words(ffid, tfid, Word2Vec.nature_filter)
-        for fid in mes.config['W2V_ONE_HOT_FIDS']:
+        for fid in self.one_hot_fids:
             feature, feature_ids = self.word2one_hot(fid)
-            with open(mes.get_feature_path(fid), "w") as fout:
+            with open(self.mes.get_feature_path(fid), "w") as fout:
                 json.dump(feature, fout)
-            with open(mes.get_feature_ids_path(fid), "w") as fout:
+            with open(self.mes.get_feature_ids_path(fid), "w") as fout:
                 json.dump(feature_ids, fout)
-        assert(len(mes.config['W2V_TRAIN_FIDS']) == len(mes.config['W2V_TRAIN_FIDS_EMB_SZ']))
-        for fid, emb_sz in zip(mes.config['W2V_TRAIN_FIDS'], mes.config['W2V_TRAIN_FIDS_EMB_SZ']):
-            assert(fid in mes.config['W2V_ONE_HOT_FIDS'])
+        for fid, emb_sz in zip(self.train_fids, self.train_fids_emb_sz):
+            assert(fid in self.one_hot_fids)
             wv = self.word2vec(fid, emb_sz)
-            with open(mes.get_feature_emb_path(fid), "w") as fout:
+            with open(self.mes.get_feature_emb_path(fid), "w") as fout:
                 json.dump(wv.tolist(), fout)
 
 if __name__ == '__main__':

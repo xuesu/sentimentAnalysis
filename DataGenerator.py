@@ -4,56 +4,59 @@ import numpy
 import pymongo
 
 import Mes
+import Utils
 
 
 class DataGenerator:
-    def __init__(self, docs=None, trainable=True, truncated=False):
+    def __init__(self, mes, col_name=None, trainable=True, truncated=False):
+        self.mes = mes
         self.trainable = trainable
-        self.words = json.load(open(Mes.W2V_WORDS_PATH))
-        self.words_id = json.load(open(Mes.W2V_WORDS_ID_PATH))
-        self.voc_sz = len(self.words) + 1
-        # self.embedding = json.load(open(Mes.W2V_EMB_PATH))
-        self.natures = json.load(open(Mes.N2N_NATURES_PATH))
-        self.natures_id = json.load(open(Mes.N2N_NATURES_ID_PATH))
-        self.natures_sz = len(self.natures)
-        # self.embedding_sz = Mes.W2V_EMB_SZ
-        self.batch_sz = Mes.DG_BATCH_SZ
-        self.sentence_sz = Mes.DG_SENTENCE_SZ
         self.truncated = truncated
-        if trainable and docs is not None:
-            records = docs.find()
+        self.features = []
+        self.features_ids = []
+        self.fids = self.mes['DG_FIDS']
+        self.batch_sz = self.mes['DG_BATCH_SZ']
+        self.test_batch_sz = self.mes['DG_TEST_BATCH_SZ']
+        self.rnum = self.mes['DG_RNUM']
+        self.sentence_sz = self.mes['DG_SENTENCE_SZ']
+        self.divide_fold = self.mes['DG_DIVIDE_FOLD']
+        self.fold_num = self.mes['DG_FOLD_NUM']
+        self.fold_test_id = self.mes['DG_FOLD_TEST_ID']
+        self.fold_valid_id = self.mes['DG_FOLD_VALID_ID']
+        if trainable and col_name is not None:
+            self.docs = Utils.get_docs(col_name)
+            records = self.docs.find()
             records = [record for record in records]
-            if Mes.DG_DIVIDE_FOLD:
-                fold_sz = (len(records) + Mes.DG_FOLD_NUM - 1) / Mes.DG_FOLD_NUM
+            if self.divide_fold:
+                fold_sz = (len(records) + self.fold_num - 1) / self.fold_num
                 random.shuffle(records)
-                for id in range(len(records)):
-                    records[id]["fold_id"] = id / fold_sz
-                    docs.save(records[id])
+                for i, record in enumerate(records):
+                    record["fold_id"] = i / fold_sz
+                    self.docs.save(record)
                 print 'Dataset Fold Divided!'
-            self.test_data, self.test_labels = DataGenerator.get_data_label(records, Mes.DG_FOLD_TEST_ID)
-            self.valid_data, self.valid_labels = DataGenerator.get_data_label(records, Mes.DG_FOLD_VALID_ID)
-            self.train_data, self.train_labels = DataGenerator.get_data_label(records,
-                                                                              exclusive_ids=[Mes.DG_FOLD_VALID_ID,
-                                                                                             Mes.DG_FOLD_TEST_ID])
+            self.test_data, self.test_labels = DataGenerator.get_data_by_fold_ids(records, [self.fold_test_id])
+            self.valid_data, self.valid_labels = DataGenerator.get_data_by_fold_ids(records, [self.fold_valid_id])
+            self.train_data, self.train_labels = DataGenerator.get_data_by_fold_ids(records,
+                                                                                    [i for i in range(self.fold_num) if
+                                                                                     i != self.fold_test_id and i != self.fold_valid_id])
 
             self.test_sz = len(self.test_data)
             self.valid_sz = len(self.valid_data)
             self.train_sz = len(self.train_data)
             self.test_inds = [0, 0, 0]
             self.valid_inds = [0, 0, 0]
-            self.train_inds = [0, 0, Mes.DG_RNUM]
+            self.train_inds = [0, 0, self.rnum]
 
     @staticmethod
-    def get_data_label(records, fold_id=None, exclusive_ids=None):
-        labels = [int(record['tag']) for record in records
-                  if (fold_id is not None and record["fold_id"] == fold_id)
-                  or (exclusive_ids is not None and record["fold_id"] not in exclusive_ids)]
+    def get_data_by_fold_ids(records, fold_ids=None):
+        labels = [record['tag'] for record in records
+                  if (fold_ids is not None and record["fold_id"] in fold_ids)]
         dataset = [record['words'] for record in records
-                   if (fold_id is not None and record["fold_id"] == fold_id)
-                   or (exclusive_ids is not None and record["fold_id"] not in exclusive_ids)]
+                   if (fold_ids is not None and record["fold_id"] in fold_ids)]
         return dataset, labels
 
-    def split_words2vec(self, words):
+    def text2vec(self, text):
+
         words = self.delete_rare_word(words)
         words_sz = len(words)
         ans = []
@@ -63,14 +66,18 @@ class DataGenerator:
             ind += self.sentence_sz
         return ans
 
+    # find if the feature exists in the feature vector
     def delete_rare_word(self, words):
+
+        for ffid, tfid in zip(mes.config['W2V_DELETE_RARE_WORD_FFIDS'], mes.config['W2V_DELETE_RARE_WORD_TFIDS']):
+            self.delete_rare_words(ffid, tfid, Word2Vec.nature_filter)
         for word in words:
             if len(word) == 2:
                 word.append(None)
             if word[0] in self.words:
                 word[2] = word[0]
             else:
-                word_del_rare = u'{}_{}'.format(Mes.W2V_RARE_WORD, word[1])
+                word_del_rare = u'{}_{}'.format(self.mes['DEFAULT_RARE_WORD, word[1])
                 if word_del_rare in self.words:
                     word[2] = word_del_rare
         return words
@@ -95,7 +102,7 @@ class DataGenerator:
 
     @staticmethod
     def label2vec(label=None):
-        ans = [0] * Mes.LABEL_NUM
+        ans = [0] * self.mes['LABEL_NUM
         if label is None:
             return ans
         ans[label + 1] = 1
@@ -134,10 +141,10 @@ class DataGenerator:
         return numpy.array(ans), numpy.array(new_labels), fl
 
     def next_test(self):
-        return self.next(self.test_data, self.test_labels, self.test_inds, Mes.DG_TEST_BATCH_SZ)
+        return self.next(self.test_data, self.test_labels, self.test_inds, self.test_batch_sz)
 
     def next_valid(self):
-        return self.next(self.valid_data, self.valid_labels, self.valid_inds, Mes.DG_TEST_BATCH_SZ)
+        return self.next(self.valid_data, self.valid_labels, self.valid_inds, self.test_batch_sz)
 
     def next_train(self, batch_sz=None, rnum=0):
         if batch_sz is None:

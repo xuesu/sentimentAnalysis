@@ -1,8 +1,9 @@
 # coding=utf-8
-import os
-import jpype
 import codecs
+import jpype
+import os
 import pymongo
+import nltk
 
 valid_coding = ['gbk', 'gb18030', "gb2312", 'utf8', 'big5', 'unicode']
 
@@ -74,6 +75,20 @@ class WordCutter(object):
                     ans.append(word)
         return ans
 
+
+class WordCutterEN(object):
+    def __init__(self):
+        self.stemmer = nltk.stem.SnowballStemmer("english")
+
+    def split(self, text):
+        words = nltk.word_tokenize(text)
+        words = [word if word != u'``' and word != '\'\'' else "\"" for word in words]
+        pos_tags = [word[1] for word in nltk.pos_tag(words)]
+        new_words = []
+        for word, pos in zip(words, pos_tags):
+            word_mes = [word.lower(), pos, -1, word, self.stemmer.stem(word), word[0].isupper(), word.isupper()]
+            new_words.append(word_mes)
+        return new_words
 
 if __name__ == '__main__':
     cutter = WordCutter()
