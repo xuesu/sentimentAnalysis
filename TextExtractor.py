@@ -91,5 +91,7 @@ class WordCutterEN(object):
         return new_words
 
 if __name__ == '__main__':
-    cutter = WordCutter()
-    cutter.split(u"假设你要设置的属性名为 yourProperty，属性值为 yourValue 。")
+    # cutter = WordCutter()
+    # print cutter.split(u"假设你要设置的属性名为 yourProperty，属性值为 yourValue 。")
+    cutter = WordCutterEN()
+    print cutter.split("'Hello Word' is a good opening for coders, don't we?")

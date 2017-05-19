@@ -10,6 +10,7 @@ DEFAULT_CONFIG_FNAME = "config.yml"
 DEFAULT_FEATURE_FNAME_FORMAT = "feature{}.json"
 DEFAULT_FEATURE_IDS_FNAME_FORMAT = "feature{}_ids.json"
 DEFAULT_FEATURE_EMB_FNAME_FORMAT = "feature{}_emb.json"
+DEFAULT_FEATURE_FREQ_FNAME_FORMAT = "feature{}_freq.json"
 DEFAULT_API_PORT = 8090
 DEFAULT_RARE_WORD = "RareWord"
 DEFAULT_MONGO_HOST = "localhost"
@@ -54,6 +55,9 @@ class Mes:
 
     def get_feature_emb_path(self, fid):
         return os.path.join(self.meta_path, DEFAULT_FEATURE_EMB_FNAME_FORMAT.format(fid))
+
+    def get_feature_freq_path(self, fid):
+        return os.path.join(self.meta_path, DEFAULT_FEATURE_FREQ_FNAME_FORMAT.format(fid))
 
 
 if __name__ == '__main__':

@@ -1,29 +1,30 @@
-import json
 import random
 import numpy
-import pymongo
 
+import TextExtractor
 import Mes
 import Utils
+import Word2Vec
 
 
-class DataGenerator:
+class DataGenerator(object):
     def __init__(self, mes, col_name=None, trainable=True, truncated=False):
         self.mes = mes
         self.trainable = trainable
         self.truncated = truncated
-        self.features = []
-        self.features_ids = []
-        self.fids = self.mes['DG_FIDS']
-        self.batch_sz = self.mes['DG_BATCH_SZ']
-        self.test_batch_sz = self.mes['DG_TEST_BATCH_SZ']
-        self.rnum = self.mes['DG_RNUM']
-        self.sentence_sz = self.mes['DG_SENTENCE_SZ']
-        self.divide_fold = self.mes['DG_DIVIDE_FOLD']
-        self.fold_num = self.mes['DG_FOLD_NUM']
-        self.fold_test_id = self.mes['DG_FOLD_TEST_ID']
-        self.fold_valid_id = self.mes['DG_FOLD_VALID_ID']
+        self.lang = self.mes.config['LANG']
+        self.fids = self.mes.config['DG_FIDS']
+        self.sentence_sz = self.mes.config['DG_SENTENCE_SZ']
+        self.label_num = self.mes.config['LABEL_NUM']
+        self.w2v = Word2Vec.Word2Vec(self.mes, trainable=False)
         if trainable and col_name is not None:
+            self.batch_sz = self.mes.config['DG_BATCH_SZ']
+            self.test_batch_sz = self.mes.config['DG_TEST_BATCH_SZ']
+            self.rnum = self.mes.config['DG_RNUM']
+            self.divide_fold = self.mes.config['DG_DIVIDE_FOLD']
+            self.fold_num = self.mes.config['DG_FOLD_NUM']
+            self.fold_test_id = self.mes.config['DG_FOLD_TEST_ID']
+            self.fold_valid_id = self.mes.config['DG_FOLD_VALID_ID']
             self.docs = Utils.get_docs(col_name)
             records = self.docs.find()
             records = [record for record in records]
@@ -36,9 +37,10 @@ class DataGenerator:
                 print 'Dataset Fold Divided!'
             self.test_data, self.test_labels = DataGenerator.get_data_by_fold_ids(records, [self.fold_test_id])
             self.valid_data, self.valid_labels = DataGenerator.get_data_by_fold_ids(records, [self.fold_valid_id])
-            self.train_data, self.train_labels = DataGenerator.get_data_by_fold_ids(records,
-                                                                                    [i for i in range(self.fold_num) if
-                                                                                     i != self.fold_test_id and i != self.fold_valid_id])
+            self.train_data, self.train_labels = \
+                DataGenerator.get_data_by_fold_ids(
+                    records, [i for i in range(self.fold_num)
+                              if i != self.fold_test_id and i != self.fold_valid_id])
 
             self.test_sz = len(self.test_data)
             self.valid_sz = len(self.valid_data)
@@ -46,6 +48,8 @@ class DataGenerator:
             self.test_inds = [0, 0, 0]
             self.valid_inds = [0, 0, 0]
             self.train_inds = [0, 0, self.rnum]
+        elif not trainable:
+            self.cutter = TextExtractor.WordCutter() if self.lang == 'zh' else TextExtractor.WordCutterEN()
 
     @staticmethod
     def get_data_by_fold_ids(records, fold_ids=None):
@@ -56,8 +60,8 @@ class DataGenerator:
         return dataset, labels
 
     def text2vec(self, text):
-
-        words = self.delete_rare_word(words)
+        words = self.cutter.split(text)
+        words = self.w2v.delete_rare_words4predict(words, nature_filter=Word2Vec.Word2Vec.nature_filter)
         words_sz = len(words)
         ans = []
         ind = 0
@@ -66,79 +70,63 @@ class DataGenerator:
             ind += self.sentence_sz
         return ans
 
-    # find if the feature exists in the feature vector
-    def delete_rare_word(self, words):
-
-        for ffid, tfid in zip(mes.config['W2V_DELETE_RARE_WORD_FFIDS'], mes.config['W2V_DELETE_RARE_WORD_TFIDS']):
-            self.delete_rare_words(ffid, tfid, Word2Vec.nature_filter)
-        for word in words:
-            if len(word) == 2:
-                word.append(None)
-            if word[0] in self.words:
-                word[2] = word[0]
-            else:
-                word_del_rare = u'{}_{}'.format(self.mes['DEFAULT_RARE_WORD, word[1])
-                if word_del_rare in self.words:
-                    word[2] = word_del_rare
-        return words
-
-    # UNUsed
-    def word2vec(self, word=None):
-        ans = numpy.zeros([self.natures_sz + 1], dtype=int)
-        if word is not None:
-            ans[self.natures_id[word[1]]] = 1
-            ans[-1] = self.words_id[word[2]]
-        return ans
-
     def words2vec(self, words, ind):
-        ans = []
-        words_sz = len(words)
-        for i in range(ind, ind + self.sentence_sz):
-            if i < words_sz and words[i][2] is not None:
-                ans.append(self.words_id.get(words[i][2], 0))
-            else:
-                ans.append(0)
+        ans = {}
+        ind_end = min(len(words), ind + self.sentence_sz)
+        for fid in self.fids:
+            ans[fid] = [0] * self.sentence_sz
+            for i in range(ind, ind_end):
+                if words[i][fid] is not None:
+                    if fid in self.w2v.one_hot_fids:
+                        ans[fid][i - ind] = self.w2v.features_ids[fid].get(words[i][fid], 0) + 1
+                    else:
+                        ans[fid][i - ind] = words[i][fid]
         return ans
 
-    @staticmethod
-    def label2vec(label=None):
-        ans = [0] * self.mes['LABEL_NUM
+    def label2vec(self, label=None, ind=None):
+        ans = [0] * self.label_num
         if label is None:
             return ans
         ans[label + 1] = 1
         return ans
 
     @staticmethod
-    def shuffle(data_unshuffle, labels_unshuffle):
-        zp = zip(data_unshuffle, labels_unshuffle)
+    def shuffle(data2shuffle, labels2shuffle):
+        zp = zip(data2shuffle, labels2shuffle)
         random.shuffle(zp)
         return [ele[0] for ele in zp], [ele[1] for ele in zp]
 
-    def next(self, sdata, slabels, inds, batch_sz, r_num=0):
+    def next(self, data, labels, inds, batch_sz, r_num=0):
         assert self.trainable
-        assert(len(sdata) == len(slabels))
-        sdata_ind, word_ind = inds[:2]
-        sdata_sz = len(sdata)
-        ans = []
+        assert(len(data) == len(labels))
+        data_ind, word_ind = inds[:2]
+        data_sz = len(data)
+        ans = {}
+        for fid in self.fids:
+            ans[fid] = []
         new_labels = []
         fl = True
-        for sdata_ind in range(inds[0], inds[0] + batch_sz):
-            words = sdata[sdata_ind % sdata_sz]
-            label = slabels[sdata_ind % sdata_sz]
-            ans.append(self.words2vec(words, word_ind))
-            new_labels.append(self.label2vec(label))
+        for data_ind in range(inds[0], inds[0] + batch_sz):
+            words = data[data_ind % data_sz]
+            label = labels[data_ind % data_sz]
+            vec = self.words2vec(words, word_ind)
+            for fid in self.fids:
+                ans[fid].append(vec[fid])
+            new_labels.append(self.label2vec(label, word_ind))
             if not self.truncated and word_ind + self.sentence_sz < len(words):
                 fl = False
         if fl:
             if inds[2] == 0:
-                inds[0] = (inds[0] + batch_sz) % sdata_sz
+                inds[0] = (inds[0] + batch_sz) % data_sz
                 inds[2] = r_num
             else:
                 inds[2] -= 1
             inds[1] = 0
         else:
             inds[1] += self.sentence_sz
-        return numpy.array(ans), numpy.array(new_labels), fl
+        for fid in self.fids:
+            ans[fid] = numpy.array(ans[fid])
+        return ans, numpy.array(new_labels), fl
 
     def next_test(self):
         return self.next(self.test_data, self.test_labels, self.test_inds, self.test_batch_sz)
@@ -156,13 +144,15 @@ class DataGenerator:
 
 
 if __name__ == '__main__':
-    hotel = pymongo.MongoClient("localhost", 27017).paper.hotel
-    dg = DataGenerator(hotel)
+    mes = Mes.Mes("hotel", "Other", "W2V", "hotel.yml")
+    dg = DataGenerator(mes, "hotel")
     data, labels, finished = dg.next_train()
-    # print data.shape, labels.shape
-    # print data
-    # print labels
+    for fid in data:
+        print data[fid].shape
+        print data[fid]
+    print labels.shape
+    print labels
 
     for i in range(50):
         batch_data, batch_labels, finished = dg.next_test()
-        # print batch_data, batch_labels
+        print batch_data, batch_labels

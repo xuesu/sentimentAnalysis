@@ -1,8 +1,8 @@
 LANG: 
-  en
+  zh
 
 LABEL_NUM:
-  5
+  3
 
 W2V_STEM:
   False
@@ -11,18 +11,18 @@ W2V_FILTER_NATURES:
 W2V_VOC_LIMITS:
   [3, 3, 3, 5, 3, 5, 5, 5, 5, 5, 5, 5, 5]
 W2V_DELETE_RARE_WORD_FFIDS:
-  [0, 4]
+  [0]
 W2V_DELETE_RARE_WORD_TFIDS:
-  [7, 8]
+  [2]
 W2V_ONE_HOT_FIDS:
-  [7, 1, 8]
+  [2, 1]
 W2V_TRAIN_FIDS:
-  [7, 1, 8]
+  [2, 1]
 W2V_TRAIN_FIDS_EMB_SZ:
-  [64, 8, 32]
+  [64, 8]
 
 DG_FIDS:
-  [7, 1, 8, 5, 6]
+  [2, 1]
 DG_BATCH_SZ:
   1000
 DG_TEST_BATCH_SZ:
@@ -81,11 +81,11 @@ PRE_E_DECAY_RATE:
 PRE_G_CUT:
   5
 PRE_STEP_NUM:
-  200000
+  3000
 PRE_E_FIXED_RATE:
   0.01
 PRE_VALID_TIME:
-  50
+  200
 
 PRE_DROPOUT_KEEP:
   0.999
