@@ -93,11 +93,13 @@ class DataGenerator(object):
 
     @staticmethod
     def shuffle(data2shuffle, labels2shuffle):
+        # print("Shuffled!")
         zp = zip(data2shuffle, labels2shuffle)
         random.shuffle(zp)
         return [ele[0] for ele in zp], [ele[1] for ele in zp]
 
     def next(self, data, labels, inds, batch_sz, r_num=0):
+        # print(inds)
         assert self.trainable
         assert(len(data) == len(labels))
         data_ind, word_ind = inds[:2]

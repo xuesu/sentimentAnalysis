@@ -116,7 +116,7 @@ def restore_semval_14(col_name, fname):
 
 
 if __name__ == '__main__':
-    # draw_words_num("tmpdata")
+    draw_words_num("semval14_laptop")
     # create_new_col("tmpdata", "xiecheng100", 100, 11000)
     # show_text_by_tag("tmpdata", 0, 1500)
-    restore_semval_14("semval14_laptop", "data/SemEval14ABSA/Laptop_Train_v2.xml")
+    # restore_semval_14("semval14_laptop", "data/SemEval14ABSA/Laptop_Train_v2.xml")

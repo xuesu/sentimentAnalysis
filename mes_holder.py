@@ -23,7 +23,7 @@ class Mes:
     def __init__(self, train_col, model_type, model_name, config_fname=None):
         self.train_col = train_col
         self.model_type = model_type
-        assert(model_type in ["ABSA", "LSTM", "NOLSTM", "Plain", "StandfordParser", "Other"])
+        assert(model_type in ["ABSA_LSTM", "ABSA_NOLSTM", "LSTM", "NOLSTM", "Plain", "StandfordParser", "Other"])
         self.model_name = model_name
         self.meta_path = os.path.join(DEFAULT_DATA_DIR, train_col, DEFAULT_META_DIR)
         if not os.path.exists(self.meta_path):
