@@ -6,15 +6,15 @@ import flask_api
 import json
 import traceback
 
-import Utils
+import utils
 import demo_exceptions
-import TextExtractor
+import text_extractor
 import Predictor
-import Mes
+import mes_holder
 
 app = flask.Flask('demo')
-logger = Utils.init_logger("demo")
-cutter = TextExtractor.WordCutter()
+logger = utils.init_logger("demo")
+cutter = text_extractor.WordCutter()
 predictor = Predictor.Predictor(docs=None, trainable=False)
 
 
@@ -62,28 +62,15 @@ def service_exception_handler(func):
     return wrapper
 
 
-@app.route("/split_words/", methods=["POST"])
-@service_exception_handler
-def split_words():
-    content = {"msg": "", "data": {}, "url": "",
-               "error": {"type": "", "message": "", "message_chs": ""}}
-    headers = {"content-type": "application/json"}
-    text = flask.request.form["text"]
-    text = unicode(text)
-    word = cutter.split(text)
-    content["data"]["words"] = word
-    return json.dumps(content), flask_api.status.HTTP_200_OK, headers
-
-
 @app.route("/predict/", methods=["POST"])
 @service_exception_handler
 def prediction():
     content = {"msg": "", "data": {}, "url": "",
                "error": {"type": "", "message": "", "message_chs": ""}}
     headers = {"content-type": "application/json"}
-    text = flask.request.form["words"]
+    text = flask.request.form["text"]
     words = json.loads(text)
-    logits = predictor.predict(words)
+    logits = predictor.predict(text)
     rare_words = []
     for word in words:
         if word[2] != word[0]:
@@ -99,4 +86,4 @@ def index():
     return flask.render_template('index.html')
 
 if __name__ == "__main__":
-    app.run(host="localhost", debug=True, port=Mes.DEMO_API_PORT)
+    app.run(host="localhost", debug=True, port=mes_holder.DEFAULT_API_PORT)

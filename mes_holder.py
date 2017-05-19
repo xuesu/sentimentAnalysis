@@ -6,6 +6,7 @@ DEFAULT_CONFIG_DIR = "config"
 DEFAULT_LOG_DIR = "log"
 DEFAULT_META_DIR = "meta"
 DEFAULT_MODEL_DIR = "model"
+DEFAULT_MODEL_NAME = "m"
 DEFAULT_CONFIG_FNAME = "config.yml"
 DEFAULT_FEATURE_FNAME_FORMAT = "feature{}.json"
 DEFAULT_FEATURE_IDS_FNAME_FORMAT = "feature{}_ids.json"
@@ -31,6 +32,10 @@ class Mes:
                                        DEFAULT_MODEL_DIR, model_type, model_name)
         if not os.path.exists(self.model_path):
             os.makedirs(self.model_path)
+        self.model_save_path = os.path.join(self.model_path, DEFAULT_MODEL_NAME)
+        self.model_log_path = os.path.join(self.model_path, DEFAULT_LOG_DIR)
+        if not os.path.exists(self.model_log_path):
+            os.makedirs(self.model_log_path)
 
         if config_fname is not None:
             config_path = os.path.join(DEFAULT_DATA_DIR, DEFAULT_CONFIG_DIR, config_fname)

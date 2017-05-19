@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 import random
 import xml.dom.minidom as minidom
 
-import Mes
-import TextExtractor
+import mes_holder
+import text_extractor
 
 
 def draw_words_num(col_name):
@@ -79,7 +79,7 @@ def show_text_by_tag(col_name, tag, limit):
 
 def restore_semval_14(col_name, fname):
     docs = pymongo.MongoClient("localhost", 27017).paper[col_name]
-    cutter = TextExtractor.WordCutterEN()
+    cutter = text_extractor.WordCutterEN()
     tree = minidom.parse(fname)
     sentences = tree.documentElement.getElementsByTagName("sentence")
     polarity2tag = {"negative": 0, "neutral": 1, "positive": 2, "conflict": 3}

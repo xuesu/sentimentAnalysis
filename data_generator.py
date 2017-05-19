@@ -1,31 +1,32 @@
 import random
 import numpy
 
-import TextExtractor
-import Mes
-import Utils
-import Word2Vec
+import text_extractor
+import mes_holder
+import utils
+import word2vec
 
 
 class DataGenerator(object):
-    def __init__(self, mes, col_name=None, trainable=True, truncated=False):
+    def __init__(self, mes, trainable=True, truncated=False):
         self.mes = mes
+        self.col_name = mes.train_col
         self.trainable = trainable
         self.truncated = truncated
         self.lang = self.mes.config['LANG']
         self.fids = self.mes.config['DG_FIDS']
         self.sentence_sz = self.mes.config['DG_SENTENCE_SZ']
         self.label_num = self.mes.config['LABEL_NUM']
-        self.w2v = Word2Vec.Word2Vec(self.mes, trainable=False)
-        if trainable and col_name is not None:
-            self.batch_sz = self.mes.config['DG_BATCH_SZ']
-            self.test_batch_sz = self.mes.config['DG_TEST_BATCH_SZ']
-            self.rnum = self.mes.config['DG_RNUM']
+        self.w2v = word2vec.Word2Vec(self.mes, trainable=False)
+        self.batch_sz = self.mes.config['DG_BATCH_SZ']
+        self.test_batch_sz = self.mes.config['DG_TEST_BATCH_SZ']
+        self.rnum = self.mes.config['DG_RNUM']
+        if trainable and self.col_name is not None:
             self.divide_fold = self.mes.config['DG_DIVIDE_FOLD']
             self.fold_num = self.mes.config['DG_FOLD_NUM']
             self.fold_test_id = self.mes.config['DG_FOLD_TEST_ID']
             self.fold_valid_id = self.mes.config['DG_FOLD_VALID_ID']
-            self.docs = Utils.get_docs(col_name)
+            self.docs = utils.get_docs(self.col_name)
             records = self.docs.find()
             records = [record for record in records]
             if self.divide_fold:
@@ -49,7 +50,7 @@ class DataGenerator(object):
             self.valid_inds = [0, 0, 0]
             self.train_inds = [0, 0, self.rnum]
         elif not trainable:
-            self.cutter = TextExtractor.WordCutter() if self.lang == 'zh' else TextExtractor.WordCutterEN()
+            self.cutter = text_extractor.WordCutter() if self.lang == 'zh' else text_extractor.WordCutterEN()
 
     @staticmethod
     def get_data_by_fold_ids(records, fold_ids=None):
@@ -61,7 +62,7 @@ class DataGenerator(object):
 
     def text2vec(self, text):
         words = self.cutter.split(text)
-        words = self.w2v.delete_rare_words4predict(words, nature_filter=Word2Vec.Word2Vec.nature_filter)
+        words = self.w2v.delete_rare_words4predict(words, nature_filter=word2vec.Word2Vec.nature_filter)
         words_sz = len(words)
         ans = []
         ind = 0
@@ -144,8 +145,8 @@ class DataGenerator(object):
 
 
 if __name__ == '__main__':
-    mes = Mes.Mes("hotel", "Other", "W2V", "hotel.yml")
-    dg = DataGenerator(mes, "hotel")
+    mes = mes_holder.Mes("hotel", "Other", "W2V", "hotel.yml")
+    dg = DataGenerator(mes)
     data, labels, finished = dg.next_train()
     for fid in data:
         print data[fid].shape

@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import sys
 
 from matplotlib.font_manager import FontProperties
-import Mes
+import mes_holder
 
 
 def plot_emb(embeddings, labels, filename):
@@ -37,7 +37,7 @@ def init_logger(name):
     logger = logging.getLogger(name)
     logger.setLevel(logging.INFO)
     formatter = logging.Formatter('%(asctime)s %(levelname)-8s %(message)s', '%a, %d %b %Y %H:%M:%S')
-    file_handler = logging.FileHandler(os.path.join(Mes.DEFAULT_LOG_DIR, "{}.log".format(name)))
+    file_handler = logging.FileHandler(os.path.join(mes_holder.DEFAULT_LOG_DIR, "{}.log".format(name)))
     file_handler.setFormatter(formatter)
     stream_handler = logging.StreamHandler(sys.stdout)
     stream_handler.setFormatter(formatter)
@@ -47,4 +47,4 @@ def init_logger(name):
 
 
 def get_docs(col_name):
-    return pymongo.MongoClient(Mes.DEFAULT_MONGO_HOST, Mes.DEFAULT_MONGO_PORT)[Mes.DEFAULT_MONGO_DB][col_name]
+    return pymongo.MongoClient(mes_holder.DEFAULT_MONGO_HOST, mes_holder.DEFAULT_MONGO_PORT)[mes_holder.DEFAULT_MONGO_DB][col_name]

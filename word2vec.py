@@ -6,8 +6,8 @@ import json
 import numpy
 import nltk
 
-import Mes
-import Utils
+import mes_holder
+import utils
 
 
 class Word2Vec:
@@ -25,7 +25,7 @@ class Word2Vec:
         self.train_fids = self.mes.config['W2V_TRAIN_FIDS']
         self.train_fids_emb_sz = self.mes.config['W2V_TRAIN_FIDS_EMB_SZ']
         if trainable:
-            self.docs = Utils.get_docs(self.mes.train_col)
+            self.docs = utils.get_docs(self.mes.train_col)
         else:
             self.features_ids = [None] * (max(self.one_hot_fids) + 1)
             self.features_freqs = [None] * (max(self.delete_rare_word_ffids) + 1)
@@ -48,7 +48,7 @@ class Word2Vec:
                 while len(word) <= tfid:
                     word.append(None)
                 if nature_filter is not None and nature_filter(self, word[1], word[ffid], freq.get(word[ffid], 0)):
-                    word[tfid] = "{}_{}".format(Mes.DEFAULT_RARE_WORD, word[1])
+                    word[tfid] = "{}_{}".format(mes_holder.DEFAULT_RARE_WORD, word[1])
                 else:
                     word[tfid] = word[ffid]
             self.docs.save(record)
@@ -62,7 +62,7 @@ class Word2Vec:
                     word.append(None)
                 if nature_filter is not None and nature_filter(self, word[1], word[ffid],
                                                                self.features_freqs[ffid].get(word[ffid], 0)):
-                    word[tfid] = "{}_{}".format(Mes.DEFAULT_RARE_WORD, word[1])
+                    word[tfid] = "{}_{}".format(mes_holder.DEFAULT_RARE_WORD, word[1])
                 else:
                     word[tfid] = word[ffid]
         return words
@@ -155,7 +155,7 @@ if __name__ == '__main__':
     # with open("test/word2vec_delete_rare_words4predict_words.json", "r") as fin:
     #     words = json.load(fin)
     # print(w2v.delete_rare_words4predict(words, nature_filter=Word2Vec.nature_filter))
-    mes = Mes.Mes("hotel", "Other", "W2V", "hotel.yml")
+    mes = mes_holder.Mes("hotel", "Other", "W2V", "hotel.yml")
     w2v = Word2Vec(mes)
     w2v.dump()
 
