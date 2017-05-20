@@ -14,6 +14,8 @@ def draw_words_num(col_name):
     docs = pymongo.MongoClient("localhost", 27017).paper[col_name]
     records = docs.find()
     x = [len(record["words"]) for record in records]
+    maxx = max(x)
+    print('max: ', maxx)
     n, bins, patches = plt.hist(x, 50, facecolor='b', alpha=0.8)
     plt.xlabel("Number of Words")
     plt.ylabel("Frequency")

@@ -1,6 +1,6 @@
 import predictor
 import mes_holder
-import utils
+import sys
 
 
 class PredictorNOLSTM(predictor.Predictor):
@@ -42,8 +42,12 @@ class PredictorNOLSTM(predictor.Predictor):
 
 
 if __name__ == '__main__':
-    # mes = mes_holder.Mes("hotel", "NOLSTM", "Test", "hotel_nolstm.yml")
-    mes = mes_holder.Mes("semval14_laptop", "ABSA_NOLSTM", "Sentences_SZ_200", "semval14_nolstm.yml")
+    print ('col_name:', sys.argv[1])
+    print ('model_type:', sys.argv[2])
+    print ('model_name:', sys.argv[3])
+    print ('config_name:', sys.argv[4])
+    mes = mes_holder.Mes(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
+    # mes = mes_holder.Mes("semval14_laptop", "ABSA_NOLSTM", "Sentences_SZ_100", "semval14_nolstm.yml")
     predictor = PredictorNOLSTM(mes)
     predictor.train()
     mes.dump()

@@ -8,6 +8,7 @@ import data_generator_ABSA
 import models
 import mes_holder
 import utils
+import sys
 
 
 class Predictor(object):
@@ -127,15 +128,15 @@ class Predictor(object):
         average_train_accuracy = 0.0
         for i in range(self.step_num):
             l, train_accuracy = self.train_sentences(self.session, self.data_generator.next_train,
-                                                     self.data_generator.batch_sz, i % self.valid_time == 0)
+                                                     self.data_generator.batch_sz, True)
             average_loss += l
-            average_train_accuracy = train_accuracy
+            average_train_accuracy += train_accuracy
             print l
             if i % self.valid_time == 0:
                 accuracy = self.validate(self.session)
                 valid_accuracys.append(accuracy)
                 print "Average Loss at Step %d: %.10f" % (i, average_loss / self.valid_time)
-                print "Average Train Accuracy %.2f" % average_train_accuracy
+                print "Average Train Accuracy %.2f" % (average_train_accuracy / self.valid_time)
                 print "Validate Accuracy %.2f" % accuracy
                 if accuracy >= self.best_accuracy_valid:
                     test_accuracy = self.test(self.session)
@@ -172,7 +173,12 @@ class Predictor(object):
 
 
 if __name__ == '__main__':
+    print ('col_name:', sys.argv[1])
+    print ('model_type:', sys.argv[2])
+    print ('model_name:', sys.argv[3])
+    print ('config_name:', sys.argv[4])
+    mes = mes_holder.Mes(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
     # mes = mes_holder.Mes("hotel", "LSTM", "Test", "hotel.yml")
-    mes = mes_holder.Mes("semval14_laptop", "ABSA_LSTM", "Test", "semval14.yml")
+    # mes = mes_holder.Mes("semval14_laptop", "ABSA_LSTM", "Test", "semval14.yml")
     predictor = Predictor(mes)
     predictor.train()

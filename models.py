@@ -121,7 +121,7 @@ class LSTMModel(object):
                     tf.summary.scalar('loss', self.loss)
 
                     with tf.name_scope("Accuracy") as sub_scope:
-                        self.predictions = tf.equal(tf.argmax(self.logits, 1), tf.argmax(self.train_labels, 1))
+                        self.predictions = tf.equal(tf.argmax(self.logits, -1), tf.argmax(self.train_labels, -1))
                         with tf.name_scope("Train") as sub_scope2:
                             self.train_accuracy = tf.reduce_mean(tf.cast(self.predictions, "float"),
                                                                  name="Train_Accuracy")
@@ -262,7 +262,7 @@ class NOLSTMModel(object):
                     tf.summary.scalar('loss', self.loss)
 
                     with tf.name_scope("Accuracy") as sub_scope:
-                        self.predictions = tf.equal(tf.argmax(self.logits, 1), tf.argmax(self.train_labels, 1))
+                        self.predictions = tf.equal(tf.argmax(self.logits, -1), tf.argmax(self.train_labels, -1))
                         with tf.name_scope("Train") as sub_scope2:
                             self.train_accuracy = tf.reduce_mean(tf.cast(self.predictions, "float"),
                                                                  name="Train_Accuracy")
@@ -410,7 +410,7 @@ class ABSALSTMModel(object):
                     tf.summary.scalar('loss', self.loss)
 
                     with tf.name_scope("Accuracy") as sub_scope:
-                        self.predictions = tf.equal(tf.argmax(self.logits, 1), tf.argmax(self.train_labels, 1))
+                        self.predictions = tf.equal(tf.argmax(self.logits, -1), tf.argmax(self.train_labels, -1))
                         with tf.name_scope("Train") as sub_scope2:
                             self.train_accuracy = tf.reduce_mean(tf.cast(self.predictions, "float"),
                                                                  name="Train_Accuracy")
@@ -553,7 +553,7 @@ class ABSANOLSTMModel(object):
                     tf.summary.scalar('loss', self.loss)
 
                     with tf.name_scope("Accuracy") as sub_scope:
-                        self.predictions = tf.equal(tf.argmax(self.logits, 1), tf.argmax(self.train_labels, 1))
+                        self.predictions = tf.equal(tf.argmax(self.logits, -1), tf.argmax(self.train_labels, -1))
                         with tf.name_scope("Train") as sub_scope2:
                             self.train_accuracy = tf.reduce_mean(tf.cast(self.predictions, "float"),
                                                                  name="Train_Accuracy")
