@@ -147,7 +147,7 @@ class DataGenerator(object):
 
 
 if __name__ == '__main__':
-    mes = mes_holder.Mes("hotel", "Other", "W2V", "hotel.yml")
+    mes = mes_holder.Mes("hotel", "Other", "LSTM", "hotel_LSTM.yml")
     dg = DataGenerator(mes)
     data, labels, finished = dg.next_train()
     for fid in data:

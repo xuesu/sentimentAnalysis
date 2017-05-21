@@ -124,13 +124,17 @@ class Word2Vec:
         return wv
 
     def nature_filter(self, nature, feature_value, frequency):
-        if nature not in self.filter_natures:
+        # if frequency < 5:
+        #    print(nature, feature_value)
+        if self.filter_natures[0] != 'all' and nature not in self.filter_natures:
             return False
-        ind = self.filter_natures.index(nature)
+        ind = self.filter_natures.index(nature) if self.filter_natures[0] != 'all' else 0
+        # if self.voc_limits[ind] > frequency:
+        #      print(nature, feature_value)
         return self.voc_limits[ind] > frequency
 
     def dump(self):
-        self.score2tag()
+        # self.score2tag()
         if self.mes.config['LANG'] == 'en' and self.mes.config['W2V_STEM']:
             self.stem_en()
         for ffid, tfid in zip(self.delete_rare_word_ffids, self.delete_rare_word_tfids):
@@ -149,13 +153,14 @@ class Word2Vec:
             with open(self.mes.get_feature_emb_path(fid), "w") as fout:
                 json.dump(wv.tolist(), fout)
 
+
 if __name__ == '__main__':
     # mes = Mes.Mes("semval14_laptop", "Other", "W2V", "semval14.yml")
     # w2v = Word2Vec(mes, trainable=False)
     # with open("test/word2vec_delete_rare_words4predict_words.json", "r") as fin:
     #     words = json.load(fin)
     # print(w2v.delete_rare_words4predict(words, nature_filter=Word2Vec.nature_filter))
-    mes = mes_holder.Mes("hotel", "Other", "W2V", "hotel.yml")
+    mes = mes_holder.Mes("imdb", "LSTM", "W2V")
     w2v = Word2Vec(mes)
     w2v.dump()
 

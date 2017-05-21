@@ -1,9 +1,11 @@
 # coding=utf-8
 
 import json
+import os
 import pymongo
 import matplotlib.pyplot as plt
 import random
+import string
 import xml.dom.minidom as minidom
 
 import mes_holder
@@ -117,8 +119,44 @@ def restore_semval_14(col_name, fname):
     print "Save %d sentences." % len(sentences)
 
 
+def restore_imdb(col_name, dir_name, tag, is_train):
+    docs = pymongo.MongoClient("localhost", 27017).paper[col_name]
+    cutter = text_extractor.WordCutterEN()
+    for root, dirs, files in os.walk(dir_name):
+        for fname in files:
+            record = {}
+            with open(os.path.join(root, fname)) as fin:
+                record['text'] = fin.read()
+            record['text'] = "".join(char for char in record['text'] if char in string.printable)
+            record['text'] = record['text'].replace("<br />", '\n')
+            print record['text']
+            record['tag'] = tag
+            record['words'] = cutter.split(record['text'])
+            record['is_train'] = is_train
+            if not is_train:
+                record['fold_id'] = 0
+            docs.save(record)
+
+
+def divide_fold_imdb(col_name, fold_num=11):
+    docs = pymongo.MongoClient("localhost", 27017).paper[col_name]
+    records = [record for record in docs.find({"fold_id": {"$ne": 0}})]
+    random.shuffle(records)
+    fold_sz = (len(records) + fold_num - 1) / fold_num
+    for i, record in enumerate(records):
+        record["fold_id"] = i / fold_sz + 1
+        docs.save(record)
+    print 'Dataset Fold Divided!'
+
+
 if __name__ == '__main__':
-    draw_words_num("semval14_laptop")
+    # restore_imdb('imdb', 'data/acllmdb/test/neg', -1, False)
+    # restore_imdb('imdb', 'data/acllmdb/test/pos', 0, False)
+    # restore_imdb('imdb', 'data/acllmdb/train/neg', -1, True)
+    # restore_imdb('imdb', 'data/acllmdb/train/pos', 0, True)
+    # divide_fold_imdb('imdb')
+
+    draw_words_num("imdb")
     # create_new_col("tmpdata", "xiecheng100", 100, 11000)
     # show_text_by_tag("tmpdata", 0, 1500)
     # restore_semval_14("semval14_laptop", "data/SemEval14ABSA/Laptop_Train_v2.xml")

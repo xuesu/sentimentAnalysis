@@ -7,7 +7,7 @@ LABEL_NUM:
 W2V_STEM:
   False
 W2V_FILTER_NATURES:
-  ['NNP', 'NNS', 'NNPS', 'FW', 'j', 'nr', 'ns', 'nt', 'nx', 'nz', '', 'null', None]
+  ['NNP', 'NNS', 'NNPS', 'FW', 'm', 'nt', 'ns', 'nrf', 'nto', 'null', None, 'nf', 'en']
 W2V_VOC_LIMITS:
   [3, 3, 3, 5, 3, 5, 5, 5, 5, 5, 5, 5, 5]
 W2V_DELETE_RARE_WORD_FFIDS:
@@ -30,7 +30,7 @@ DG_TEST_BATCH_SZ:
 DG_RNUM:
   0
 DG_SENTENCE_SZ:
-  200
+  25
 DG_DIVIDE_FOLD:
   False
 DG_FOLD_NUM:
@@ -93,7 +93,7 @@ PRE_E_FIXED_RATE:
 PRE_DROPOUT_KEEP_PROB:
   0.99
 PRE_VALID_TIME:
-  200
+  80
 
 PRE_DROPOUT_KEEP:
   0.999

@@ -1,3 +1,4 @@
+import abc
 import json
 import os
 import numpy
@@ -5,6 +6,7 @@ import tensorflow as tf
 
 import data_generator
 import data_generator_ABSA
+import data_generator_LSTM
 import models
 import mes_holder
 import utils
@@ -21,19 +23,18 @@ class Predictor(object):
         self.model_type = mes.model_type
         self.col_name = mes.train_col
         self.docs = utils.get_docs(self.col_name)
-        self.data_generator = data_generator_ABSA.DataGeneratorABSA(mes, trainable,
-                                                                    truncated=self.model_type.endswith("NOLSTM")) \
-            if self.model_type.startswith('ABSA') else data_generator.DataGenerator(
-            mes, trainable, truncated=self.model_type.endswith("NOLSTM"))
         self.graph = tf.Graph()
         self.trainable = trainable
         if self.model_type == 'LSTM':
+            self.data_generator = data_generator_LSTM.DataGeneratorLSTM(mes, trainable)
             self.model = models.LSTMModel(self.mes, self.graph)
         elif self.model_type == 'ABSA_LSTM':
-            self.model = models.ABSALSTMModel(self.mes, self.graph)
+            self.model = models.ABSALSTMModel(self.mes, self.graph, trainable)
         elif self.model_type == 'NOLSTM':
+            self.data_generator = data_generator.DataGenerator(self.mes, trainable, True)
             self.model = models.NOLSTMModel(self.mes, self.graph)
         elif self.model_type == 'ABSA_NOLSTM':
+            self.data_generator =  data_generator_ABSA.DataGeneratorABSANOLSTM(mes, trainable)
             self.model = models.ABSANOLSTMModel(self.mes, self.graph)
         self.merge_all = tf.summary.merge_all()
         self.session = tf.Session(graph=self.graph)
@@ -60,49 +61,13 @@ class Predictor(object):
                     self.model.saver.restore(self.session, self.model_save_path)
         self.writer = tf.summary.FileWriter(self.model_log_path, self.session.graph)
 
-    def train_sentences(self, session, nxt_method, batch_sz, get_accuracy=False):
-        accuracy = -1
-        batch_data, batch_labels, finished = nxt_method(batch_sz)
-        state = [numpy.zeros([batch_sz, sz], dtype=float) for sz in self.model.lstm.state_size]
-        feed_dict = {self.model.dropout_keep_prob: self.dropout_keep_prob_rate}
-        while True:
-            for i in range(2):
-                feed_dict[self.model.state[i].name] = state[i]
-            for fid in self.data_generator.fids:
-                feed_dict[self.model.train_dataset[fid]] = batch_data[fid]
-            feed_dict[self.model.train_labels] = batch_labels
-            if finished and get_accuracy:
-                _, loss, accuracy = session.run(
-                    [self.model.optimizer, self.model.loss, self.model.train_accuracy], feed_dict=feed_dict)
-            else:
-                _, loss, new_state = session.run(
-                    [self.model.optimizer, self.model.loss,
-                     self.model.new_state], feed_dict=feed_dict)
-            if finished:
-                break
-            batch_data, batch_labels, finished = nxt_method(batch_sz)
-            state = new_state
-        return loss, accuracy
+    @abc.abstractmethod
+    def train_sentences(self, session, nxt_method, batch_sz):
+        raise NotImplementedError("Please Implement this method")
 
+    @abc.abstractmethod
     def test_sentences(self, session, nxt_method, is_valid=True):
-        batch_data, batch_labels, finished = nxt_method()
-        model_accuracy = self.model.valid_accuracy if is_valid else self.model.test_accuracy
-        state = [numpy.zeros([self.data_generator.test_batch_sz, sz], dtype=float) for sz in self.model.lstm.state_size]
-        feed_dict = {self.model.dropout_keep_prob: 1.0}
-        while True:
-            for i in range(2):
-                feed_dict[self.model.state[i].name] = state[i]
-            for fid in self.data_generator.fids:
-                feed_dict[self.model.train_dataset[fid]] = batch_data[fid]
-            feed_dict[self.model.train_labels] = batch_labels
-            if finished:
-                accuracy = session.run([model_accuracy], feed_dict=feed_dict)[0]
-                break
-            else:
-                new_state = session.run([self.model.new_state], feed_dict=feed_dict)[0]
-            batch_data, batch_labels, finished = nxt_method()
-            state = new_state
-        return accuracy
+        raise NotImplementedError("Please Implement this method")
 
     def test(self, session):
         assert self.trainable
@@ -128,7 +93,7 @@ class Predictor(object):
         average_train_accuracy = 0.0
         for i in range(self.step_num):
             l, train_accuracy = self.train_sentences(self.session, self.data_generator.next_train,
-                                                     self.data_generator.batch_sz, True)
+                                                     self.data_generator.batch_sz)
             average_loss += l
             average_train_accuracy += train_accuracy
             print l
@@ -152,33 +117,13 @@ class Predictor(object):
             json.dump([train_accuracys, valid_accuracys], fout)
         with open(os.path.join(self.model_path, "result.txt"), "w") as fout:
             json.dump([accuracy, self.best_accuracy_valid, self.best_accuracy_test], fout)
+        mes.dump()
         print "%s: Final Test Accuracy %.2f\n" \
               "Model Valid Accuracy %.2f\n" \
               "Model Test Accuracy %.2f\n" % (self.model_path, accuracy,
-                                                self.best_accuracy_valid, self.best_accuracy_test)
+                                              self.best_accuracy_valid, self.best_accuracy_test)
 
+    @abc.abstractmethod
     def predict(self, text):
-        batches = self.data_generator.text2vec(text)
-        feed_dict = {self.model.dropout_keep_prob: 1.0}
-        state = [numpy.zeros([1, sz], dtype=float) for sz in self.model.lstm.state_size]
-        logits = None
-        for batch_data in batches:
-            for i in range(2):
-                feed_dict[self.model.state[i].name] = state[i]
-            for fid in self.data_generator.fids:
-                feed_dict[self.model.train_dataset[fid]] = batch_data[fid]
-            logits, new_state = self.session.run([self.model.logits, self.model.new_state], feed_dict=feed_dict)
-            state = new_state
-        return logits[0]
+        raise NotImplementedError("Please Implement this method")
 
-
-if __name__ == '__main__':
-    print ('col_name:', sys.argv[1])
-    print ('model_type:', sys.argv[2])
-    print ('model_name:', sys.argv[3])
-    print ('config_name:', sys.argv[4])
-    mes = mes_holder.Mes(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
-    # mes = mes_holder.Mes("hotel", "LSTM", "Test", "hotel.yml")
-    # mes = mes_holder.Mes("semval14_laptop", "ABSA_LSTM", "Test", "semval14.yml")
-    predictor = Predictor(mes)
-    predictor.train()

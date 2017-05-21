@@ -1,4 +1,5 @@
 import os
+import json
 import yaml
 
 DEFAULT_DATA_DIR = "data"
@@ -36,12 +37,14 @@ class Mes:
         self.model_log_path = os.path.join(self.model_path, DEFAULT_LOG_DIR)
         if not os.path.exists(self.model_log_path):
             os.makedirs(self.model_log_path)
-
-        if config_fname is not None:
-            config_path = os.path.join(DEFAULT_DATA_DIR, DEFAULT_CONFIG_DIR, config_fname)
-            if os.path.exists(config_path):
-                with open(config_path, "r") as fin:
-                    self.config = yaml.load(fin)
+        if config_fname is None:
+            config_fname = "{}_{}.yml".format(train_col, model_type)
+        config_path = os.path.join(DEFAULT_DATA_DIR, DEFAULT_CONFIG_DIR, config_fname)
+        if os.path.exists(config_path):
+            with open(config_path, "r") as fin:
+                self.config = yaml.load(fin)
+            print 'Successfully load {}'.format(config_path)
+            print json.dumps(self.config, indent=4, sort_keys=True)
         self.config_path = os.path.join(DEFAULT_DATA_DIR, train_col,
                                         DEFAULT_MODEL_DIR, model_type, model_name, DEFAULT_CONFIG_FNAME)
 

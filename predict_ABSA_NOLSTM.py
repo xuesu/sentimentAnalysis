@@ -3,10 +3,10 @@ import mes_holder
 import sys
 
 
-class PredictorNOLSTM(predictor.Predictor):
+class PredictorABSANOLSTM(predictor.Predictor):
     def __init__(self, col_name, model_name, trainable=True):
-        mes = mes_holder.Mes(col_name, "NOLSTM", model_name=model_name)
-        super(PredictorNOLSTM, self).__init__(mes, trainable)
+        mes = mes_holder.Mes(col_name, "ABSA_NOLSTM", model_name=model_name)
+        super(PredictorABSANOLSTM, self).__init__(mes, trainable)
 
     def train_sentences(self, session, nxt_method, batch_sz):
         batch_data, batch_labels, finished = nxt_method(batch_sz)
@@ -40,5 +40,5 @@ if __name__ == '__main__':
     print ('col_name:', sys.argv[1])
     print ('model_name:', sys.argv[2])
     # mes = mes_holder.Mes("semval14_laptop", "ABSA_NOLSTM", "Sentences_SZ_100", "semval14_nolstm.yml")
-    predictor = PredictorNOLSTM(sys.argv[1], sys.argv[2])
+    predictor = PredictorABSANOLSTM(sys.argv[1], sys.argv[2])
     predictor.train()

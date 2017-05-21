@@ -46,5 +46,9 @@ def init_logger(name):
     return logger
 
 
+def get_groups(s, g):
+    return int((s + g - 1) / g)
+
+
 def get_docs(col_name):
     return pymongo.MongoClient(mes_holder.DEFAULT_MONGO_HOST, mes_holder.DEFAULT_MONGO_PORT)[mes_holder.DEFAULT_MONGO_DB][col_name]
