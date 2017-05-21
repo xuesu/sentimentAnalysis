@@ -25,7 +25,6 @@ class PredictorLSTM(predictor.Predictor):
             else:
                 _, loss, accuracy = session.run(
                     [self.model.optimizer, self.model.loss, self.model.train_accuracy], feed_dict=feed_dict)
-                print loss, accuracy
                 return loss, accuracy
             batch_data, batch_labels, finished = nxt_method(batch_sz)
             state = new_state

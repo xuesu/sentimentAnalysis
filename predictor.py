@@ -1,16 +1,14 @@
 import abc
 import json
 import os
-import numpy
 import tensorflow as tf
 
+import datetime
 import data_generator
 import data_generator_ABSA
 import data_generator_LSTM
 import models
-import mes_holder
 import utils
-import sys
 
 
 class Predictor(object):
@@ -29,7 +27,7 @@ class Predictor(object):
             self.data_generator = data_generator_LSTM.DataGeneratorLSTM(mes, trainable)
             self.model = models.LSTMModel(self.mes, self.graph)
         elif self.model_type == 'ABSA_LSTM':
-            self.model = models.ABSALSTMModel(self.mes, self.graph, trainable)
+            self.model = models.ABSALSTMModel(self.mes, self.graph)
         elif self.model_type == 'NOLSTM':
             self.data_generator = data_generator.DataGenerator(self.mes, trainable, True)
             self.model = models.NOLSTMModel(self.mes, self.graph)
@@ -85,6 +83,7 @@ class Predictor(object):
 
     def train(self, model_path=None):
         assert self.trainable
+        start_time = datetime.datetime.now()
         train_accuracys = []
         valid_accuracys = []
         if model_path is not None:
@@ -100,6 +99,7 @@ class Predictor(object):
             if i % self.valid_time == 0:
                 accuracy = self.validate(self.session)
                 valid_accuracys.append(accuracy)
+                now_time = datetime.datetime.now()
                 print "Average Loss at Step %d: %.10f" % (i, average_loss / self.valid_time)
                 print "Average Train Accuracy %.2f" % (average_train_accuracy / self.valid_time)
                 print "Validate Accuracy %.2f" % accuracy
@@ -110,6 +110,7 @@ class Predictor(object):
                         self.best_accuracy_valid = accuracy
                         self.best_accuracy_test = test_accuracy
                         self.model.saver.save(self.session, self.model_save_path)
+                print "Spent %d(s)\n" % (now_time - start_time).seconds
                 average_train_accuracy = 0.0
                 average_loss = 0.0
         accuracy = self.test(self.session)

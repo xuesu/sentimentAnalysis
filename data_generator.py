@@ -58,6 +58,7 @@ class DataGenerator(object):
                   if (fold_ids is not None and record["fold_id"] in fold_ids)]
         dataset = [record['words'] for record in records
                    if (fold_ids is not None and record["fold_id"] in fold_ids)]
+        dataset, labels = DataGenerator.shuffle(dataset, labels)
         return dataset, labels
 
     def text2vec(self, text):
@@ -142,7 +143,7 @@ class DataGenerator(object):
             batch_sz = self.batch_sz
         nxt = self.next(self.train_data, self.train_labels, self.train_inds, batch_sz, rnum)
         if self.train_inds[0] < self.batch_sz and self.train_inds[1] == 0 and self.train_inds[2] == rnum:
-            DataGenerator.shuffle(self.train_data, self.train_labels)
+            self.train_data, self.train_labels = DataGenerator.shuffle(self.train_data, self.train_labels)
         return nxt
 
 
