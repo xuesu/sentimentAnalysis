@@ -41,4 +41,4 @@ if __name__ == '__main__':
     print ('model_name:', sys.argv[2])
     # mes = mes_holder.Mes("semval14_laptop", "ABSA_NOLSTM", "Sentences_SZ_100", "semval14_nolstm.yml")
     predictor = PredictorABSANOLSTM(sys.argv[1], sys.argv[2])
-    predictor.train()
+    predictor.run()

@@ -16,7 +16,7 @@ class PredictorABSALSTM(predictor.Predictor):
         state_encoder = [numpy.zeros([batch_sz, sz], dtype=float) for sz in self.model.lstm_encoder.state_size]
         feed_dict = {self.model.dropout_keep_prob: self.dropout_keep_prob_rate}
 
-        while not finished:
+        while True:
             state_decoder = [numpy.zeros([batch_sz, sz], dtype=float) for sz in self.model.lstm_decoder.state_size]
             for i in range(2):
                 feed_dict[self.model.state_encoder[i].name] = state_encoder[i]
@@ -28,13 +28,14 @@ class PredictorABSALSTM(predictor.Predictor):
                 for i in range(2):
                     feed_dict[self.model.state_decoder[i].name] = state_decoder[i]
                 if word_ind == 0:
-                    feed_dict[self.model.lstm_decoder_nxt] = numpy.zeros([batch_sz, self.data_generator.label_num])
+                    feed_dict[self.model.lstm_decoder_past] = numpy.zeros([batch_sz, self.data_generator.label_num])
                 else:
-                    feed_dict[self.model.lstm_decoder_nxt] = batch_labels[word_ind - 1]
+                    feed_dict[self.model.lstm_decoder_past] = batch_labels[word_ind - 1]
+                feed_dict[self.model.train_labels] = batch_labels[word_ind]
 
                 _, new_state_encoder, new_state_decoder, sub_loss, accuracy = session.run(
-                    self.model.optimizer, self.model.new_state_encoder,
-                    self.model.new_state_decoder, self.model.loss, self.model.train_accuracy)
+                    [self.model.optimizer, self.model.new_state_encoder,
+                     self.model.new_state_decoder, self.model.loss, self.model.train_accuracy], feed_dict=feed_dict)
                 state_encoder = new_state_encoder
                 state_decoder = new_state_decoder
                 loss += sub_loss
@@ -44,6 +45,7 @@ class PredictorABSALSTM(predictor.Predictor):
                 return loss, numpy.mean(accuracies)
             else:
                 batch_data, batch_labels, finished = nxt_method(batch_sz)
+                batch_len += self.data_generator.sentence_sz
 
     def test_sentences(self, session, nxt_method, is_valid=True):
         batch_data, batch_labels, finished = nxt_method()
@@ -66,18 +68,18 @@ class PredictorABSALSTM(predictor.Predictor):
                 for i in range(2):
                     feed_dict[self.model.state_decoder[i].name] = state_decoder[i]
                 if word_ind == 0:
-                    feed_dict[self.model.lstm_decoder_nxt] = numpy.zeros([self.data_generator.test_batch_sz,
+                    feed_dict[self.model.lstm_decoder_past] = numpy.zeros([self.data_generator.test_batch_sz,
                                                                           self.data_generator.label_num])
-                else:
-                    feed_dict[self.model.lstm_decoder_nxt] = batch_labels[word_ind - 1]
+                feed_dict[self.model.train_labels] = batch_labels[word_ind]
 
-                _, new_state_encoder, new_state_decoder, sub_loss, accuracy = session.run(
-                    self.model.optimizer, self.model.new_state_encoder,
-                    self.model.new_state_decoder, self.model.loss, model_accuracy)
+                new_state_encoder, new_state_decoder, sub_loss, accuracy, logits = session.run(
+                    [self.model.new_state_encoder, self.model.new_state_decoder,
+                     self.model.loss, model_accuracy, self.model.logits], feed_dict=feed_dict)
                 state_encoder = new_state_encoder
                 state_decoder = new_state_decoder
                 loss += sub_loss
                 accuracies.append(accuracy)
+                feed_dict[self.model.lstm_decoder_past] = logits
             print accuracies
             if finished:
                 return numpy.mean(accuracies)
@@ -99,8 +101,4 @@ class PredictorABSALSTM(predictor.Predictor):
         return logits[0]
 
 if __name__ == '__main__':
-    print ('col_name:', sys.argv[1])
-    print ('model_name:', sys.argv[2])
-    # mes = mes_holder.Mes("semval14_laptop", "ABSA_NOLSTM", "Sentences_SZ_100", "semval14_nolstm.yml")
-    predictor = PredictorABSALSTM(sys.argv[1], sys.argv[2])
-    predictor.train()
+    predictor.run()

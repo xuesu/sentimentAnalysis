@@ -8,6 +8,7 @@ import data_generator
 import data_generator_ABSA
 import data_generator_LSTM
 import models
+import sys
 import utils
 
 
@@ -27,6 +28,7 @@ class Predictor(object):
             self.data_generator = data_generator_LSTM.DataGeneratorLSTM(mes, trainable)
             self.model = models.LSTMModel(self.mes, self.graph)
         elif self.model_type == 'ABSA_LSTM':
+            self.data_generator = data_generator_ABSA.DataGeneratorABSALSTM(self.mes, trainable)
             self.model = models.ABSALSTMModel(self.mes, self.graph)
         elif self.model_type == 'NOLSTM':
             self.data_generator = data_generator.DataGenerator(self.mes, trainable, True)
@@ -48,6 +50,7 @@ class Predictor(object):
             with self.model.graph.as_default():
                 if self.mes.config.get('MODEL_RESTORE_PATH', None) is not None:
                     self.model.saver.restore(self.session, self.mes.config['MODEL_RESTORE_PATH'])
+                    print 'Restored from', self.mes.config['MODEL_RESTORE_PATH']
                 else:
                     init = tf.global_variables_initializer()
                     self.session.run(init)
@@ -55,6 +58,7 @@ class Predictor(object):
             with self.model.graph.as_default():
                 if self.mes.config['MODEL_RESTORE_PATH'] is not None:
                     self.model.saver.restore(self.session, self.mes.config['MODEL_RESTORE_PATH'])
+                    print 'Restored from', self.mes.config['MODEL_RESTORE_PATH']
                 else:
                     self.model.saver.restore(self.session, self.model_save_path)
         self.writer = tf.summary.FileWriter(self.model_log_path, self.session.graph)
@@ -83,6 +87,7 @@ class Predictor(object):
 
     def train(self, model_path=None):
         assert self.trainable
+        self.mes.dump()
         start_time = datetime.datetime.now()
         train_accuracys = []
         valid_accuracys = []
@@ -101,11 +106,11 @@ class Predictor(object):
                 valid_accuracys.append(accuracy)
                 now_time = datetime.datetime.now()
                 print "Average Loss at Step %d: %.10f" % (i, average_loss / self.valid_time)
-                print "Average Train Accuracy %.2f" % (average_train_accuracy / self.valid_time)
-                print "Validate Accuracy %.2f" % accuracy
-                if accuracy >= self.best_accuracy_valid:
+                print "Average Train Accuracy %.3f" % (average_train_accuracy / self.valid_time)
+                print "Validate Accuracy %.3f" % accuracy
+                if self.data_generator.test_sz > 0 and accuracy >= self.best_accuracy_valid:
                     test_accuracy = self.test(self.session)
-                    print "Test Accuracy %.2f" % test_accuracy
+                    print "Test Accuracy %.3f" % test_accuracy
                     if test_accuracy >= self.good_accuracy and average_train_accuracy >= self.good_accuracy:
                         self.best_accuracy_valid = accuracy
                         self.best_accuracy_test = test_accuracy
@@ -113,15 +118,17 @@ class Predictor(object):
                 print "Spent %d(s)\n" % (now_time - start_time).seconds
                 average_train_accuracy = 0.0
                 average_loss = 0.0
-        accuracy = self.test(self.session)
+        if self.data_generator.test_sz > 0:
+            accuracy = self.test(self.session)
+        else:
+            accuracy = -1
         with open(os.path.join(self.model_path, "accuracy.json"), "w") as fout:
             json.dump([train_accuracys, valid_accuracys], fout)
         with open(os.path.join(self.model_path, "result.txt"), "w") as fout:
             json.dump([accuracy, self.best_accuracy_valid, self.best_accuracy_test], fout)
-        mes.dump()
-        print "%s: Final Test Accuracy %.2f\n" \
-              "Model Valid Accuracy %.2f\n" \
-              "Model Test Accuracy %.2f\n" % (self.model_path, accuracy,
+        print "%s: Final Test Accuracy %.3f\n" \
+              "Model Valid Accuracy %.3f\n" \
+              "Model Test Accuracy %.3f\n" % (self.model_path, accuracy,
                                               self.best_accuracy_valid, self.best_accuracy_test)
 
     @abc.abstractmethod

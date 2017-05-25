@@ -6,10 +6,14 @@ import pymongo
 import matplotlib.pyplot as plt
 import random
 import string
+import sys
 import xml.dom.minidom as minidom
 
-import mes_holder
 import text_extractor
+import predict_LSTM
+import predict_NOLSTM
+import predict_ABSA_LSTM
+import predict_ABSA_NOLSTM
 
 
 def draw_words_num(col_name):
@@ -77,8 +81,15 @@ def show_text_by_tag(col_name, tag, limit):
     docs = pymongo.MongoClient("localhost", 27017).paper[col_name]
     records = docs.find({"tag": tag})
     records = [record for record in records][:limit]
+    fnum = len(records[0]['words'][0])
     for record in records:
-        print record["text"]
+        words = [[] for _ in range(fnum)]
+        print 'Text:', record["text"]
+        for word in record['words']:
+            for i in range(fnum):
+                words[i].append(word[i])
+        for i in range(fnum):
+            print 'Feature %d:' % i, u' '.join([unicode(word) for word in words[i]])
 
 
 def restore_semval_14(col_name, fname):
@@ -138,6 +149,54 @@ def restore_imdb(col_name, dir_name, tag, is_train):
             docs.save(record)
 
 
+def restore_nlpcc(col_name, fname, tag, lang, is_train):
+    docs = pymongo.MongoClient("localhost", 27017).paper[col_name]
+    if lang == 'en':
+        cutter = text_extractor.WordCutterEN()
+    else:
+        cutter = text_extractor.WordCutter()
+    with open(fname) as fin:
+        content = fin.read()
+    content = content.replace('&', '##AND##')
+    tree = minidom.parseString(content)
+    reviews = tree.documentElement.getElementsByTagName("review")
+    for review in reviews:
+        record = dict()
+        text = review.firstChild.data
+        text = text.replace('##AND##', '&').strip()
+        if lang == 'en':
+            text = "".join(char for char in text if char in string.printable)
+        text = text.replace('\n\r', '\n').replace('\r', '\n').replace('\n\n', '\n')
+        record["text"] = text
+        if tag is not None:
+            record['tag'] = tag
+        else:
+            record['tag'] = int(review.getAttribute('label')) - 1
+        record["words"] = cutter.split(text)
+        record['is_train'] = is_train
+        if not is_train:
+            record['fold_id'] = 0
+        docs.save(record)
+    del cutter
+
+
+def run():
+    print ('col_name:', sys.argv[1])
+    print ('model_type', sys.argv[2])
+    model_name = raw_input("Please input model name:")
+    if sys.argv[2] == 'LSTM':
+        predictor = predict_LSTM.PredictorLSTM(sys.argv[1], model_name)
+    elif sys.argv[2] == 'NOLSTM':
+        predictor = predict_NOLSTM.PredictorNOLSTM(sys.argv[1], model_name)
+    elif sys.argv[2] == 'ABSA_LSTM':
+        predictor = predict_ABSA_LSTM.PredictorABSALSTM(sys.argv[1], model_name)
+    elif sys.argv[2] == 'ABSA_NOLSTM':
+        predictor = predict_ABSA_NOLSTM.PredictorABSANOLSTM(sys.argv[1], model_name)
+    else:
+        raise ValueError
+    predictor.train()
+
+
 def divide_fold_imdb(col_name, fold_num=11):
     docs = pymongo.MongoClient("localhost", 27017).paper[col_name]
     records = [record for record in docs.find({"fold_id": {"$ne": 0}})]
@@ -154,9 +213,22 @@ if __name__ == '__main__':
     # restore_imdb('imdb', 'data/acllmdb/test/pos', 0, False)
     # restore_imdb('imdb', 'data/acllmdb/train/neg', -1, True)
     # restore_imdb('imdb', 'data/acllmdb/train/pos', 0, True)
-    # divide_fold_imdb('imdb')
-
-    draw_words_num("imdb")
+    # divide_fold_imdb('nlpcc_zh')
+    # divide_fold_imdb('nlpcc_en')
+    # restore_nlpcc('nlpcc_zh', u'data/NLPCC训练数据集/Sentiment Classification with Deep Learning/test.label.cn.txt',
+    #               None, 'zh', False)
+    # restore_nlpcc('nlpcc_en', u'data/NLPCC训练数据集/Sentiment Classification with Deep Learning/test.label.en.txt',
+    #               None, 'en', False)
+    # restore_nlpcc('nlpcc_zh', u'data/NLPCC训练数据集/evaltask2_训练数据集/cn_sample_data/sample.negative.txt', -1,
+    #               'zh', True)
+    # restore_nlpcc('nlpcc_en', u'data/NLPCC训练数据集/evaltask2_训练数据集/en_sample_data/sample.negative.txt', -1,
+    #               'en', True)
+    # restore_nlpcc('nlpcc_zh', u'data/NLPCC训练数据集/evaltask2_训练数据集/cn_sample_data/sample.positive.txt', 0,
+    #               'zh', True)
+    # restore_nlpcc('nlpcc_en', u'data/NLPCC训练数据集/evaltask2_训练数据集/en_sample_data/sample.positive.txt', 0,
+    #               'en', True)
+    # draw_words_num("nlpcc_en")
+    # draw_words_num("nlpcc_zh")
     # create_new_col("tmpdata", "xiecheng100", 100, 11000)
-    # show_text_by_tag("tmpdata", 0, 1500)
+    show_text_by_tag("nlpcc_zh", 0, 1500)
     # restore_semval_14("semval14_laptop", "data/SemEval14ABSA/Laptop_Train_v2.xml")
