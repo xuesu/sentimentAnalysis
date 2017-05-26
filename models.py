@@ -175,6 +175,7 @@ class NOLSTMModel(object):
         self.linear0_sz = mes.config['PRE_LINEAR0_SZ']
         self.linear1_sz = mes.config['PRE_LINEAR1_SZ']
         self.linear2_sz = mes.config['PRE_LINEAR2_SZ']
+        self.linear3_sz = mes.config['PRE_LINEAR3_SZ']
         self.learning_rate = mes.config['PRE_E_LEARNING_RATE']
         self.decay_step = mes.config['PRE_E_DECAY_STEP']
         self.decay_rate = mes.config['PRE_E_DECAY_RATE']
@@ -257,6 +258,9 @@ class NOLSTMModel(object):
             with tf.name_scope("Linear2") as scope:
                 self.linear2 = tf.layers.dense(self.relu1, self.linear2_sz)
                 self.relu2 = tf.nn.relu(self.linear2)
+            with tf.name_scope("Linear3") as scope:
+                self.linear3 = tf.layers.dense(self.relu2, self.linear3_sz)
+                self.relu3 = tf.nn.relu(self.linear3)
             with tf.name_scope("Output") as scope:
                 self.logits = tf.layers.dense(self.relu2, self.label_num, name="Logits")
                 with tf.name_scope("Loss") as sub_scope:

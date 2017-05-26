@@ -79,8 +79,13 @@ def create_new_col(col_name, new_col_name, words_num, tag_num):
 
 def show_text_by_tag(col_name, tag, limit):
     docs = pymongo.MongoClient("localhost", 27017).paper[col_name]
-    records = docs.find({"tag": tag})
-    records = [record for record in records][:limit]
+    if tag is not None:
+        records = docs.find({"tag": tag})
+    else:
+        records = docs.find()
+    records = [record for record in records]
+    random.shuffle(records)
+    records = records[:limit]
     fnum = len(records[0]['words'][0])
     for record in records:
         words = [[] for _ in range(fnum)]
@@ -230,5 +235,5 @@ if __name__ == '__main__':
     # draw_words_num("nlpcc_en")
     # draw_words_num("nlpcc_zh")
     # create_new_col("tmpdata", "xiecheng100", 100, 11000)
-    show_text_by_tag("nlpcc_zh", 0, 1500)
+    show_text_by_tag("mobile", None, 5)
     # restore_semval_14("semval14_laptop", "data/SemEval14ABSA/Laptop_Train_v2.xml")

@@ -33,7 +33,7 @@ DG_TEST_BATCH_SZ:
 DG_RNUM:
   0
 DG_SENTENCE_SZ:
-  250
+  50
 DG_DIVIDE_FOLD:
   False
 DG_FOLD_NUM:
@@ -53,24 +53,24 @@ PRE_EMB_FIDS:
   [6, 7]
 
 PRE_CONVS_LEVEL_NUMS:
-  4
+  3
 PRE_CONVS_KERNEL_NUMS:
-  [[2,3,5],[1,2,3],[1,2,3],[1,2,3]]
+  [[2,3,5],[1,2,3],[1,2,3]]
 PRE_CONVS_STRIDES:
-  [[1,1,1],[1,1,1],[1,1,1],[1,1,1]]
+  [[1,1,1],[1,1,1],[1,1,1]]
 PRE_CONVS_FILTER_NUMS:
-  [32,32,32,32]
+  [32,32,32]
 PRE_POOLS_SIZES:
-  [[2,3,5],[2,3,5],[2,3,5],[2,3,5]]
+  [[2,3,5],[2,3,5],[2,3,5]]
 PRE_POOLS_STRIDES:
-  [[2,3,5],[2,3,5],[2,3,5],[2,3,5]]
+  [[2,3,5],[2,3,5],[2,3,5]]
 
 PRE_GOOD_RATE:
   0.7
 PRE_LINEAR1_SZ:
-  512
+  256
 PRE_LSTM_SZ:
-  512
+  256
 PRE_LINEAR2_SZ:
   128
 PRE_E_LEARNING_RATE:

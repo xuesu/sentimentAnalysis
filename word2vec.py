@@ -169,7 +169,7 @@ if __name__ == '__main__':
     # with open("test/word2vec_delete_rare_words4predict_words.json", "r") as fin:
     #     words = json.load(fin)
     # print(w2v.delete_rare_words4predict(words, nature_filter=Word2Vec.nature_filter))
-    mes = mes_holder.Mes("nlpcc_en", "LSTM", "W2V")
+    mes = mes_holder.Mes("nlpcc_zh", "LSTM", "W2V")
     w2v = Word2Vec(mes)
     w2v.dump()
 
