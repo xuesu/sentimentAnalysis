@@ -34,9 +34,8 @@ class Predictor(object):
             self.data_generator = data_generator.DataGenerator(self.mes, trainable, True)
             self.model = models.NOLSTMModel(self.mes, self.graph)
         elif self.model_type == 'ABSA_NOLSTM':
-            self.data_generator =  data_generator_ABSA.DataGeneratorABSANOLSTM(mes, trainable)
+            self.data_generator = data_generator_ABSA.DataGeneratorABSANOLSTM(mes, trainable)
             self.model = models.ABSANOLSTMModel(self.mes, self.graph)
-        self.merge_all = tf.summary.merge_all()
         self.session = tf.Session(graph=self.graph)
         if trainable:
             self.good_accuracy = self.mes.config['PRE_GOOD_RATE']

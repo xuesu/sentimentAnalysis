@@ -23,8 +23,10 @@ class PredictorLSTM(predictor.Predictor):
                 _, loss, new_state = session.run(
                     [self.model.optimizer, self.model.loss, self.model.new_state], feed_dict=feed_dict)
             else:
-                _, loss, accuracy = session.run(
-                    [self.model.optimizer, self.model.loss, self.model.train_accuracy], feed_dict=feed_dict)
+                summary, _, loss, accuracy = session.run(
+                    [self.model.merge_all, self.model.optimizer, self.model.loss, self.model.train_accuracy], 
+                    feed_dict=feed_dict)
+                self.writer.add_summary(summary)
                 return loss, accuracy
             batch_data, batch_labels, finished = nxt_method(batch_sz)
             state = new_state
@@ -41,7 +43,9 @@ class PredictorLSTM(predictor.Predictor):
                 feed_dict[self.model.train_dataset[fid]] = batch_data[fid]
             feed_dict[self.model.train_labels] = batch_labels
             if finished:
-                new_state, accuracy = session.run([self.model.new_state, model_accuracy], feed_dict=feed_dict)
+                summary, new_state, accuracy = session.run([self.model.merge_all, self.model.new_state, model_accuracy],
+                                                           feed_dict=feed_dict)
+                self.writer.add_summary(summary)
                 return accuracy
             else:
                 new_state = session.run([self.model.new_state], feed_dict=feed_dict)[0]

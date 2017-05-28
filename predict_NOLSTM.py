@@ -14,8 +14,9 @@ class PredictorNOLSTM(predictor.Predictor):
                      self.model.train_labels: batch_labels}
         for fid in self.data_generator.fids:
             feed_dict[self.model.train_dataset[fid]] = batch_data[fid]
-        _, loss, accuracy = session.run(
-            [self.model.optimizer, self.model.loss, self.model.train_accuracy], feed_dict=feed_dict)
+        summary, _, loss, accuracy = session.run(
+            [self.model.merge_all, self.model.optimizer, self.model.loss, self.model.train_accuracy], feed_dict=feed_dict)
+        self.writer.add_summary(summary)
         return loss, accuracy
 
     def test_sentences(self, session, nxt_method, is_valid=True):
@@ -24,7 +25,8 @@ class PredictorNOLSTM(predictor.Predictor):
         feed_dict = {self.model.dropout_keep_prob: 1.0, self.model.train_labels: batch_labels}
         for fid in self.data_generator.fids:
             feed_dict[self.model.train_dataset[fid]] = batch_data[fid]
-        accuracy = session.run([model_accuracy], feed_dict=feed_dict)[0]
+        summary, accuracy = session.run([self.model.merge_all, model_accuracy], feed_dict=feed_dict)
+        self.writer.add_summary(summary)
         return accuracy
 
     def predict(self, text):

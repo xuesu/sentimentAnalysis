@@ -3,6 +3,7 @@
 import json
 import os
 import pymongo
+import nltk
 import matplotlib.pyplot as plt
 import random
 import string
@@ -10,6 +11,7 @@ import sys
 import xml.dom.minidom as minidom
 
 import text_extractor
+import utils
 import predict_LSTM
 import predict_NOLSTM
 import predict_ABSA_LSTM
@@ -213,6 +215,25 @@ def divide_fold_imdb(col_name, fold_num=11):
     print 'Dataset Fold Divided!'
 
 
+def count_word_num(col_name):
+    docs = pymongo.MongoClient("localhost", 27017).paper[col_name]
+    records = [record for record in docs.find({"fold_id": {"$ne": 0}})]
+    words = set()
+    for record in records:
+        for word in record['words']:
+            words.add(word[0])
+    return len(words)
+
+
+def lemmarize(col_name):
+    docs = utils.get_docs(col_name)
+    stemmer = nltk.stem.SnowballStemmer("english")
+    for record in docs.find():
+        for word in record['words']:
+            word[4] = stemmer.stem(word[4])
+        docs.save(record)
+
+
 if __name__ == '__main__':
     # restore_imdb('imdb', 'data/acllmdb/test/neg', -1, False)
     # restore_imdb('imdb', 'data/acllmdb/test/pos', 0, False)
@@ -233,7 +254,9 @@ if __name__ == '__main__':
     # restore_nlpcc('nlpcc_en', u'data/NLPCC训练数据集/evaltask2_训练数据集/en_sample_data/sample.positive.txt', 0,
     #               'en', True)
     # draw_words_num("nlpcc_en")
-    # draw_words_num("nlpcc_zh")
+    # draw_words_num("semval14_restaurants")
+    # print count_word_num('nlpcc_zh')
+    lemmarize('nlpcc_en')
     # create_new_col("tmpdata", "xiecheng100", 100, 11000)
-    show_text_by_tag("mobile", None, 5)
+    # show_text_by_tag("mobile", None, 5)
     # restore_semval_14("semval14_laptop", "data/SemEval14ABSA/Laptop_Train_v2.xml")

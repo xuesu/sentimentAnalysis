@@ -25,8 +25,6 @@ class LSTMModel(object):
         self.lstm_sz = mes.config['PRE_LSTM_SZ']
         self.linear2_sz = mes.config['PRE_LINEAR2_SZ']
         self.learning_rate = mes.config['PRE_E_LEARNING_RATE']
-        self.decay_step = mes.config['PRE_E_DECAY_STEP']
-        self.decay_rate = mes.config['PRE_E_DECAY_RATE']
 
         assert(len(self.one_hot_fids) == len(self.one_hot_depths))
         self.fids = set(self.c_fids + self.emb_fids + self.one_hot_fids)
@@ -142,16 +140,11 @@ class LSTMModel(object):
                             tf.summary.scalar("Test Accuracy", self.valid_accuracy)
 
             with tf.name_scope("Optimizer") as scope:
-                self.global_step = tf.Variable(0, trainable=False, name="Global_Step")
-                starter_learning_rate = self.learning_rate
-                self.learning_rate = tf.train.exponential_decay(starter_learning_rate, self.global_step,
-                                                                self.decay_step, self.decay_rate,
-                                                                staircase=True)
-                self.optimizer = tf.train.AdadeltaOptimizer(self.learning_rate).minimize(self.loss,
-                                                                                         global_step=self.global_step)
+                self.optimizer = tf.train.AdamOptimizer().minimize(self.loss)
                 # self.optimizer = tf.train.GradientDescentOptimizer(Mes.PRE_E_FIXED_RATE).minimize(self.loss)
 
             self.saver = tf.train.Saver()
+            self.merge_all = tf.summary.merge_all()
 
 
 class NOLSTMModel(object):
@@ -177,8 +170,6 @@ class NOLSTMModel(object):
         self.linear2_sz = mes.config['PRE_LINEAR2_SZ']
         self.linear3_sz = mes.config['PRE_LINEAR3_SZ']
         self.learning_rate = mes.config['PRE_E_LEARNING_RATE']
-        self.decay_step = mes.config['PRE_E_DECAY_STEP']
-        self.decay_rate = mes.config['PRE_E_DECAY_RATE']
 
         assert(len(self.one_hot_fids) == len(self.one_hot_depths))
         self.fids = set(self.c_fids + self.emb_fids + self.one_hot_fids)
@@ -284,16 +275,11 @@ class NOLSTMModel(object):
                             tf.summary.scalar("Test Accuracy", self.valid_accuracy)
 
             with tf.name_scope("Optimizer") as scope:
-                self.global_step = tf.Variable(0, trainable=False, name="Global_Step")
-                starter_learning_rate = self.learning_rate
-                self.learning_rate = tf.train.exponential_decay(starter_learning_rate, self.global_step,
-                                                                self.decay_step, self.decay_rate,
-                                                                staircase=True)
-                self.optimizer = tf.train.AdadeltaOptimizer(self.learning_rate).minimize(self.loss,
-                                                                                         global_step=self.global_step)
+                self.optimizer = tf.train.AdamOptimizer().minimize(self.loss)
                 # self.optimizer = tf.train.GradientDescentOptimizer(Mes.PRE_E_FIXED_RATE).minimize(self.loss)
 
             self.saver = tf.train.Saver()
+            self.merge_all = tf.summary.merge_all()
 
 
 class ABSALSTMModel(object):
@@ -323,8 +309,6 @@ class ABSALSTMModel(object):
         self.lstm_sz = mes.config['PRE_LSTM_SZ']
         self.linear2_sz = mes.config['PRE_LINEAR2_SZ']
         self.learning_rate = mes.config['PRE_E_LEARNING_RATE']
-        self.decay_step = mes.config['PRE_E_DECAY_STEP']
-        self.decay_rate = mes.config['PRE_E_DECAY_RATE']
 
         assert(len(self.one_hot_fids) == len(self.one_hot_depths))
         self.fids = set(self.c_fids + self.emb_fids + self.one_hot_fids)
@@ -458,16 +442,11 @@ class ABSALSTMModel(object):
                         tf.summary.scalar("Test Accuracy", self.valid_accuracy)
 
             with tf.name_scope("Optimizer") as scope:
-                self.global_step = tf.Variable(0, trainable=False, name="Global_Step")
-                starter_learning_rate = self.learning_rate
-                self.learning_rate = tf.train.exponential_decay(starter_learning_rate, self.global_step,
-                                                                self.decay_step, self.decay_rate,
-                                                                staircase=True)
-                self.optimizer = tf.train.AdadeltaOptimizer(self.learning_rate).minimize(self.loss,
-                                                                                         global_step=self.global_step)
+                self.optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate).minimize(self.loss)
                 # self.optimizer = tf.train.GradientDescentOptimizer(Mes.PRE_E_FIXED_RATE).minimize(self.loss)
 
             self.saver = tf.train.Saver()
+            self.merge_all = tf.summary.merge_all()
 
 
 class ABSANOLSTMModel(object):
@@ -496,8 +475,6 @@ class ABSANOLSTMModel(object):
         self.lstm_sz = mes.config['PRE_LSTM_SZ']
         self.linear2_sz = mes.config['PRE_LINEAR2_SZ']
         self.learning_rate = mes.config['PRE_E_LEARNING_RATE']
-        self.decay_step = mes.config['PRE_E_DECAY_STEP']
-        self.decay_rate = mes.config['PRE_E_DECAY_RATE']
 
         assert(len(self.one_hot_fids) == len(self.one_hot_depths))
         self.fids = set(self.c_fids + self.emb_fids + self.one_hot_fids)
@@ -600,13 +577,8 @@ class ABSANOLSTMModel(object):
                             tf.summary.scalar("Test Accuracy", self.valid_accuracy)
 
             with tf.name_scope("Optimizer") as scope:
-                self.global_step = tf.Variable(0, trainable=False, name="Global_Step")
-                starter_learning_rate = self.learning_rate
-                self.learning_rate = tf.train.exponential_decay(starter_learning_rate, self.global_step,
-                                                                self.decay_step, self.decay_rate,
-                                                                staircase=True)
-                self.optimizer = tf.train.AdadeltaOptimizer(self.learning_rate).minimize(self.loss,
-                                                                                         global_step=self.global_step)
+                self.optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate).minimize(self.loss)
                 # self.optimizer = tf.train.GradientDescentOptimizer(Mes.PRE_E_FIXED_RATE).minimize(self.loss)
 
             self.saver = tf.train.Saver()
+            self.merge_all = tf.summary.merge_all()
