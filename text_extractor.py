@@ -75,8 +75,8 @@ class WordParser(object):
         self.stemmer = nltk.stem.SnowballStemmer("english")
         LexicalizedParser = jpype.JClass("edu.stanford.nlp.parser.lexparser.LexicalizedParser")
         self.JWord = jpype.JClass("edu.stanford.nlp.ling.Word")
-        self.parser_zh = LexicalizedParser.loadModel("e   du/stanford/nlp/models/lexparser/xinhuaFactored.ser.gz",
-                                                     jpype.JArray(["-maxLength", "2000"]))
+        self.parser_zh = LexicalizedParser.loadModel("edu/stanford/nlp/models/lexparser/xinhuaFactored.ser.gz",
+                                                     ["-maxLength", "2000"])
 
     def __del__(self):
         jpype.shutdownJVM()
@@ -106,12 +106,18 @@ class WordParser(object):
         for sentence in sentences:
             for token in sentence.get(self.JTokensAnnotation):
                 word = token.get(self.JTextAnnotation)
+                if word not in text:
+                    continue
+                if word == u'``' or word == "''":
+                    word = "\""
                 if word == u'`':
                     word = "'"
                 pos = token.get(self.JPartOfSpeechAnnotation)
                 lemma = token.get(self.JLemmaAnnotation)
                 ner = token.get(self.JNamedEntityTagAnnotation)
                 words.append([word, pos, -1, word.lower(), self.stemmer.stem(lemma), ner])
+        if words[-1][0] == '.' and text.endswith(words[-2][0]):
+            words = words[:-1]
         return words
 
     def parse(self, text, lang='zh'):

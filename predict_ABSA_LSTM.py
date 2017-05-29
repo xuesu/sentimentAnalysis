@@ -3,6 +3,7 @@ import sys
 
 import predictor
 import mes_holder
+import scripts
 
 
 class PredictorABSALSTM(predictor.Predictor):
@@ -101,4 +102,4 @@ class PredictorABSALSTM(predictor.Predictor):
         return logits[0]
 
 if __name__ == '__main__':
-    predictor.run()
+    scripts.run()

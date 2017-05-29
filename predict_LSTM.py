@@ -23,8 +23,8 @@ class PredictorLSTM(predictor.Predictor):
                 _, loss, new_state = session.run(
                     [self.model.optimizer, self.model.loss, self.model.new_state], feed_dict=feed_dict)
             else:
-                summary, _, loss, accuracy = session.run(
-                    [self.model.merge_all, self.model.optimizer, self.model.loss, self.model.train_accuracy], 
+                concet, dataset, summary, _, loss, accuracy = session.run(
+                    [self.model.train_dataset,self.model.concat_reshape, self.model.merge_all, self.model.optimizer, self.model.loss, self.model.train_accuracy],
                     feed_dict=feed_dict)
                 self.writer.add_summary(summary)
                 return loss, accuracy

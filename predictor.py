@@ -90,10 +90,12 @@ class Predictor(object):
         start_time = datetime.datetime.now()
         train_accuracys = []
         valid_accuracys = []
+        test_accuracys = []
         if model_path is not None:
             self.model.saver.restore(self.session, model_path)
         average_loss = 0.0
         average_train_accuracy = 0.0
+        test_accuracy = 0.0
         for i in range(self.step_num):
             l, train_accuracy = self.train_sentences(self.session, self.data_generator.next_train,
                                                      self.data_generator.batch_sz)
@@ -104,8 +106,9 @@ class Predictor(object):
                 accuracy = self.validate(self.session)
                 valid_accuracys.append(accuracy)
                 now_time = datetime.datetime.now()
+                average_train_accuracy /= self.valid_time
                 print "Average Loss at Step %d: %.10f" % (i, average_loss / self.valid_time)
-                print "Average Train Accuracy %.3f" % (average_train_accuracy / self.valid_time)
+                print "Average Train Accuracy %.3f" % (average_train_accuracy)
                 print "Validate Accuracy %.3f" % accuracy
                 if self.data_generator.test_sz > 0 and accuracy >= self.best_accuracy_valid:
                     test_accuracy = self.test(self.session)
@@ -114,9 +117,16 @@ class Predictor(object):
                         self.best_accuracy_valid = accuracy
                         self.best_accuracy_test = test_accuracy
                         self.model.saver.save(self.session, self.model_save_path)
+                if self.data_generator.test_sz > 0:
+                    test_accuracys.append(test_accuracy)
+                train_accuracys.append(average_train_accuracy)
                 print "Spent %d(s)\n" % (now_time - start_time).seconds
                 average_train_accuracy = 0.0
                 average_loss = 0.0
+                with open(os.path.join(self.model_path, "accuracy.json"), "w") as fout:
+                    json.dump([train_accuracys, valid_accuracys, test_accuracys], fout)
+                with open(os.path.join(self.model_path, "result.txt"), "w") as fout:
+                    json.dump([accuracy, self.best_accuracy_valid, self.best_accuracy_test], fout)
         if self.data_generator.test_sz > 0:
             accuracy = self.test(self.session)
         else:

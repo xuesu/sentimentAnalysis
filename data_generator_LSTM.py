@@ -8,13 +8,13 @@ class DataGeneratorLSTM(data_generator.DataGenerator):
     def __init__(self, mes, trainable=True):
         super(DataGeneratorLSTM, self).__init__(mes, trainable)
         self.step_num = mes.config['DG_STEP_NUM']
+        self.step_back = mes.config['DG_STEP_BACK']
         self.blocks_cache = []
 
     def next(self, data, labels, inds, batch_sz, r_num=0):
         # print(inds)
         assert self.trainable
         assert(len(data) == len(labels))
-        data_ind, word_ind = inds[:2]
         data_sz = len(data)
         if len(self.blocks_cache) > 0:
             self.blocks_cache = self.blocks_cache[1:]
@@ -26,19 +26,18 @@ class DataGeneratorLSTM(data_generator.DataGenerator):
             fl = True
             for data_ind in range(inds[0], inds[0] + batch_sz):
                 words = data[data_ind % data_sz]
-                vec = self.words2vec(words, word_ind)
+                vec = self.words2vec(words, inds[1])
                 for fid in self.fids:
                     ans[fid].append(numpy.array(vec[fid]))
-                if word_ind + self.sentence_sz < len(words):
+                if inds[1] + self.sentence_sz < len(words):
                     fl = False
-            inds[1] += self.sentence_sz
-            word_ind = inds[1]
+            inds[1] += self.sentence_sz - self.step_back
             self.blocks_cache.append(ans)
 
         tags = []
         for data_ind in range(inds[0], inds[0] + batch_sz):
             label = labels[data_ind % data_sz]
-            tags.append(self.label2vec(label, word_ind))
+            tags.append(self.label2vec(label, None))
 
         blocks = {}
         for fid in self.fids:
@@ -54,12 +53,11 @@ class DataGeneratorLSTM(data_generator.DataGenerator):
                 inds[2] -= 1
             inds[1] = 0
             self.blocks_cache = []
-
         return blocks, tags, fl
 
 
 if __name__ == '__main__':
-    mes = mes_holder.Mes("hotel", "LSTM", "Test")
+    mes = mes_holder.Mes("nlpcc_zh", "LSTM", "Test")
     dg = DataGeneratorLSTM(mes)
     # data, labels, finished = dg.next_train()
     # for fid in data:
@@ -70,8 +68,8 @@ if __name__ == '__main__':
 
     for i in range(50):
         print dg.test_inds
-        batch_data, batch_labels, finished = dg.next_test()
+        batch_data, batch_labels, finished = dg.next_valid()
         for fid in batch_data:
             for batch_d in batch_data[fid]:
-                print batch_d[0]
-        print 'label:', batch_labels[0]
+                print batch_d
+        print 'label:', batch_labels

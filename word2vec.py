@@ -46,6 +46,7 @@ class Word2Vec:
                                                                           [i for i in range(self.fold_num)
                                                                            if i != self.fold_test_id and
                                                                            i != self.fold_valid_id])
+        # train_dataset = [record['words'] for record in records]
         freq = {}
         for words in train_dataset:
             for word in words:
@@ -135,11 +136,11 @@ class Word2Vec:
         # if frequency < 5:
         #    print(nature, feature_value)
         # Attention: 'all' should always the first
-        if self.filter_natures[0] != 'all' and nature not in self.filter_natures:
+        if len(self.filter_natures) == 0 or (self.filter_natures[0] != 'all' and nature not in self.filter_natures):
             return False
         ind = self.filter_natures.index(nature) if nature in self.filter_natures else 0
         if self.voc_limits[ind] > frequency:
-            print(nature, feature_value)
+            print(nature, feature_value, self.voc_limits[ind], frequency)
         return self.voc_limits[ind] > frequency
 
     def dump(self):
@@ -169,7 +170,7 @@ if __name__ == '__main__':
     # with open("test/word2vec_delete_rare_words4predict_words.json", "r") as fin:
     #     words = json.load(fin)
     # print(w2v.delete_rare_words4predict(words, nature_filter=Word2Vec.nature_filter))
-    mes = mes_holder.Mes("nlpcc_zh", "LSTM", "W2V")
+    mes = mes_holder.Mes("nlpcc_zh", "NOLSTM", "W2V")
     w2v = Word2Vec(mes)
     w2v.dump()
 

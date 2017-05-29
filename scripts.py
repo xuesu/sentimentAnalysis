@@ -36,6 +36,7 @@ def draw_several_accuracy_plots(in_names, labels, gap, sz, title):
     assert(len(in_names) == len(labels))
     train_accuracies = []
     valid_accuracies = []
+    test_accuracies = []
     x = [i * gap for i in range(sz)]
     num = len(in_names)
     for in_name in in_names:
@@ -43,15 +44,24 @@ def draw_several_accuracy_plots(in_names, labels, gap, sz, title):
             data = json.load(fin)
             train_accuracies.append(data[0][:sz])
             valid_accuracies.append(data[1][:sz])
-    alpha_start = 0.2
+            if len(data) > 2:
+                test_accuracies.append(data[2][:sz])
+            else:
+                test_accuracies.append([])
+    alpha_start = 0.1
     alpha_end = 1.0
     alpha_gap = (alpha_end - alpha_start) / num
     train_color = 'g'
     valid_color = 'b'
+    test_color = 'c'
     for i in range(num):
         alpha = alpha_end - alpha_gap * i
-        plt.plot(x, train_accuracies[i], color=train_color, alpha=alpha, label=labels[i] + " train")
-        plt.plot(x, valid_accuracies[i], color=valid_color, alpha=alpha, label=labels[i] + " valid")
+        # if len(train_accuracies[i]) > 0:
+        #     plt.plot(x, train_accuracies[i], color=train_color, alpha=alpha, label=labels[i] + " train")
+        if len(valid_accuracies[i]) > 0:
+            plt.plot(x, valid_accuracies[i], color=valid_color, alpha=alpha, label=labels[i] + " valid")
+        if len(test_accuracies[i]) > 0:
+            plt.plot(x, test_accuracies[i], color=test_color, alpha=alpha, label=labels[i] + " test")
     plt.xlabel("Training Iteration")
     plt.ylabel("Accuracy(%)")
     plt.axis('tight')
@@ -101,7 +111,7 @@ def show_text_by_tag(col_name, tag, limit):
 
 def restore_semval_14(col_name, fname):
     docs = pymongo.MongoClient("localhost", 27017).paper[col_name]
-    cutter = text_extractor.WordCutterEN()
+    cutter = text_extractor.WordParser()
     tree = minidom.parse(fname)
     sentences = tree.documentElement.getElementsByTagName("sentence")
     polarity2tag = {"negative": 0, "neutral": 1, "positive": 2, "conflict": 3}
@@ -109,15 +119,15 @@ def restore_semval_14(col_name, fname):
         record = dict()
         text = sentence.getElementsByTagName("text")[0].firstChild.data
         record["text"] = text
-        record["words"] = cutter.split(text)
-        words = [word[3] for word in record["words"]]
+        record["words"] = cutter.split(text, 'en')
+        words = [word[0] for word in record["words"]]
         record["aspectTerm"] = []
         aspect_terms = sentence.getElementsByTagName("aspectTerm")
         inds = [0] * len(text)
         ind = 0
         for i, word in enumerate(words):
             for char in word:
-                while text[ind] != char:
+                while text[ind] != char and text[ind].isalnum():
                     inds[ind] = inds[ind - 1] if ind > 0 else 0
                     ind += 1
                 inds[ind] = i
@@ -235,28 +245,16 @@ def lemmarize(col_name):
 
 
 if __name__ == '__main__':
-    # restore_imdb('imdb', 'data/acllmdb/test/neg', -1, False)
-    # restore_imdb('imdb', 'data/acllmdb/test/pos', 0, False)
-    # restore_imdb('imdb', 'data/acllmdb/train/neg', -1, True)
-    # restore_imdb('imdb', 'data/acllmdb/train/pos', 0, True)
+    draw_several_accuracy_plots(
+        ["/home/iris/project/sentimentAnalysis/data/nlpcc_zh/model/NOLSTM/org/accuracy.json",
+         "/home/iris/project/sentimentAnalysis/data/nlpcc_zh/model/NOLSTM/withrarewords/accuracy.json"],
+        ["Frequent words", "All words"], 10, 100, "Accuracy Plot - Rare Word")
     # divide_fold_imdb('nlpcc_zh')
     # divide_fold_imdb('nlpcc_en')
-    # restore_nlpcc('nlpcc_zh', u'data/NLPCC训练数据集/Sentiment Classification with Deep Learning/test.label.cn.txt',
-    #               None, 'zh', False)
-    # restore_nlpcc('nlpcc_en', u'data/NLPCC训练数据集/Sentiment Classification with Deep Learning/test.label.en.txt',
-    #               None, 'en', False)
-    # restore_nlpcc('nlpcc_zh', u'data/NLPCC训练数据集/evaltask2_训练数据集/cn_sample_data/sample.negative.txt', -1,
-    #               'zh', True)
-    # restore_nlpcc('nlpcc_en', u'data/NLPCC训练数据集/evaltask2_训练数据集/en_sample_data/sample.negative.txt', -1,
-    #               'en', True)
-    # restore_nlpcc('nlpcc_zh', u'data/NLPCC训练数据集/evaltask2_训练数据集/cn_sample_data/sample.positive.txt', 0,
-    #               'zh', True)
-    # restore_nlpcc('nlpcc_en', u'data/NLPCC训练数据集/evaltask2_训练数据集/en_sample_data/sample.positive.txt', 0,
-    #               'en', True)
     # draw_words_num("nlpcc_en")
     # draw_words_num("semval14_restaurants")
     # print count_word_num('nlpcc_zh')
-    lemmarize('nlpcc_en')
+    # lemmarize('nlpcc_en')
     # create_new_col("tmpdata", "xiecheng100", 100, 11000)
     # show_text_by_tag("mobile", None, 5)
-    # restore_semval_14("semval14_laptop", "data/SemEval14ABSA/Laptop_Train_v2.xml")
+    # restore_semval_14("laptop", "/home/iris/project/sentimentAnalysis/data/xiechengABSA/Laptop_Train_v2.xml")
