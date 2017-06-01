@@ -20,27 +20,14 @@ class DataGenerator(object):
         self.batch_sz = self.mes.config['DG_BATCH_SZ']
         self.test_batch_sz = self.mes.config['DG_TEST_BATCH_SZ']
         self.rnum = self.mes.config['DG_RNUM']
-        self.divide_fold = self.mes.config['DG_DIVIDE_FOLD']
-        if trainable:
+        self.w2v = word2vec.Word2Vec(self.mes, trainable=False)
+        if trainable and self.col_name is not None:
             self.fold_num = self.mes.config['DG_FOLD_NUM']
             self.fold_test_id = self.mes.config['DG_FOLD_TEST_ID']
             self.fold_valid_id = self.mes.config['DG_FOLD_VALID_ID']
             self.docs = utils.get_docs(self.col_name)
-            if self.divide_fold:
-                records = self.docs.find()
-                records = [record for record in records]
-                fold_sz = (len(records) + self.fold_num - 1) / self.fold_num
-                random.shuffle(records)
-                for i, record in enumerate(records):
-                    record["fold_id"] = i / fold_sz
-                    self.docs.save(record)
-                print 'Dataset Fold Divided!'
-        self.w2v = word2vec.Word2Vec(self.mes, trainable=False)
-        if trainable and self.col_name is not None:
-            self.docs = utils.get_docs(self.col_name)
             records = self.docs.find()
             records = [record for record in records]
-
             self.test_data, self.test_labels = DataGenerator.get_data_by_fold_ids(records, [self.fold_test_id])
             self.valid_data, self.valid_labels = DataGenerator.get_data_by_fold_ids(records, [self.fold_valid_id])
             self.train_data, self.train_labels = \
@@ -55,7 +42,7 @@ class DataGenerator(object):
             self.valid_inds = [0, 0, 0]
             self.train_inds = [0, 0, self.rnum]
         elif not trainable:
-            self.cutter = text_extractor.WordCutter() if self.lang == 'zh' else text_extractor.WordCutterEN()
+            self.cutter = text_extractor.WordParser()
 
     @staticmethod
     def get_data_by_fold_ids(records, fold_ids=None):

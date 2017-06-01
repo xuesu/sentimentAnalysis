@@ -1,0 +1,139 @@
+0
+100 percent 2
+absolute 2
+absolutely 2
+alarmingly 2
+amazingly 2
+as fully as possible 2
+astonishingly 2
+awfully 2
+beyond challenge 2
+beyond compare 2
+beyond comparison 2
+beyond measure 2
+bitterly 2
+by all means 2
+completely 2
+deep-rooted 2
+deep-seated 2
+deeply 2
+definitely 2
+disastrously 2
+downright 2
+entirely 2
+exceedingly 2
+excessively 2
+extreme 2
+extremely 2
+fully 2
+greatest 2
+greatly 2
+heinous 2
+hundred-percent 2
+immensely 2
+immoderate 2
+in a penetrating way 2
+in every possible way 2
+in the extreme 2
+incomparably 2
+ingrained 2
+matchlessly 2
+monstrous 2
+most 2
+of the highest degree 2
+out-and-out 2
+outstanding 2
+outstandingly 2
+reach the limit 2
+right-down 2
+sharply 2
+sheer 2
+superb 2
+terribly 2
+to death 2
+to the full 2
+to the letter 2
+to the limit 2
+to the marrow 2
+to the utmost 2
+totally 2
+towering 2
+unusually 2
+utmost 2
+utterly 2
+very much 2
+most 2
+not -1
+don't -1
+ben't -1
+a lot 2
+awfully 2
+badly 2
+better 2
+by far 2
+considerably 2
+deep 2
+disastrously 2
+especially 2
+extraordinarily 2
+extremely 2
+greatly 2
+how 2
+however 2
+indeed 2
+much 2
+particularly 2
+really 2
+terribly 2
+to a serious degree 2
+too far 2
+too much 2
+unusually 2
+very 2
+what a 2
+all the more 2
+as much as 2
+at the worst 2
+by far 2
+comparatively 2
+even more 2
+further 1.5
+further more 1.5
+increasingly 2
+more 1.5
+more and more 1.5
+more so 1.5
+much more 2
+a bit 0.5
+a bit too 0.5
+a little 0.5
+a little bit 0.5
+a little more 0.5
+fairly 1.5
+more or less 0.5
+passably 0.5
+pretty 0.5
+quite 1.5
+slightly 0.5
+some 0.5
+somewhat 0.5
+to some extent 0.5
+a little less 0.5
+just 0.5
+light 0.5
+merely -0.5
+not particularly -0.5
+not too -0.5
+not very  -0.5
+relative 0.5
+slight 0.5
+slightest degree of 0.5
+slightly 0.5
+a little over 2
+excessive 2
+excessively 2
+not too much -0.5
+slightly more 1.5
+super 2
+too 2
+too much 2

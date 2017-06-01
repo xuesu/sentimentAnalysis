@@ -4,7 +4,7 @@ from __future__ import print_function
 import gensim
 import json
 import numpy
-import nltk
+import random
 
 import data_generator
 import mes_holder
@@ -18,6 +18,7 @@ class Word2Vec:
         assert(len(self.mes.config['W2V_FILTER_NATURES']) == len(self.mes.config['W2V_VOC_LIMITS']))
         assert(len(self.mes.config['W2V_DELETE_RARE_WORD_FFIDS']) == len(self.mes.config['W2V_DELETE_RARE_WORD_TFIDS']))
         assert(len(self.mes.config['W2V_TRAIN_FIDS']) == len(self.mes.config['W2V_TRAIN_FIDS_EMB_SZ']))
+        self.divide_fold = self.mes.config['DG_DIVIDE_FOLD']
         self.fold_num = self.mes.config['DG_FOLD_NUM']
         self.fold_test_id = self.mes.config['DG_FOLD_TEST_ID']
         self.fold_valid_id = self.mes.config['DG_FOLD_VALID_ID']
@@ -28,11 +29,11 @@ class Word2Vec:
         self.one_hot_fids = self.mes.config['W2V_ONE_HOT_FIDS']
         self.train_fids = self.mes.config['W2V_TRAIN_FIDS']
         self.train_fids_emb_sz = self.mes.config['W2V_TRAIN_FIDS_EMB_SZ']
+        self.features_ids = {}
+        self.features_freqs = {}
         if trainable:
             self.docs = utils.get_docs(self.mes.train_col)
         else:
-            self.features_ids = [None] * (max(self.one_hot_fids) + 1)
-            self.features_freqs = [None] * (max(self.delete_rare_word_ffids) + 1)
             for fid in self.one_hot_fids:
                 with open(self.mes.get_feature_ids_path(fid)) as fin:
                     self.features_ids[fid] = json.load(fin)
@@ -40,31 +41,43 @@ class Word2Vec:
                 with open(self.mes.get_feature_freq_path(fid)) as fin:
                     self.features_freqs[fid] = json.load(fin)
 
-    def delete_rare_words(self, ffid, tfid, nature_filter=None):
+    def divide(self):
+        if self.divide_fold:
+            records = []
+            fl = False
+            for record in self.docs.find():
+                if record['is_train'] is not None and not record['is_train']:
+                    record['fold_id'] = 0
+                    self.docs.save(record)
+                    fl = True
+                else:
+                    records.append(record)
+            fold_sz = (len(records) + self.fold_num - 1) / self.fold_num
+            random.shuffle(records)
+            for i, record in enumerate(records):
+                record["fold_id"] = i / fold_sz
+                if fl:
+                    record["fold_id"] += 1
+                self.docs.save(record)
+            print('Dataset Fold Divided!')
+
+    def delete_rare_words(self, nature_filter=None):
         records = [record for record in self.docs.find()]
         train_dataset, _ = data_generator.DataGenerator.get_data_by_fold_ids(records,
                                                                           [i for i in range(self.fold_num)
                                                                            if i != self.fold_test_id and
                                                                            i != self.fold_valid_id])
-        # train_dataset = [record['words'] for record in records]
-        freq = {}
-        for words in train_dataset:
-            for word in words:
-                # Here I use the whole tf without considering its pos because it's easy and the tf itself is low.
-                freq[word[ffid]] = freq.get(word[ffid], 0) + 1
+        for ffid, tfid in zip(self.delete_rare_word_ffids, self.delete_rare_word_tfids):
+            self.features_freqs[ffid] = {}
+            for words in train_dataset:
+                for word in words:
+                    self.features_freqs[ffid][word[ffid]] = self.features_freqs[ffid].get(word[ffid], 0) + 1
+            print("Delete Rare Words from %d to %d Completed!" % (ffid, tfid))
         for record in records:
-            for word in record["words"]:
-                while len(word) <= tfid:
-                    word.append(None)
-                if nature_filter is not None and nature_filter(self, word[1], word[ffid], freq.get(word[ffid], 0)):
-                    word[tfid] = mes_holder.DEFAULT_RARE_WORD
-                else:
-                    word[tfid] = word[ffid]
+            record['words'] = self.delete_rare_words_single(record['words'], nature_filter)
             self.docs.save(record)
-        print("Delete Rare Words from %d to %d Completed!" % (ffid, tfid))
-        return freq
 
-    def delete_rare_words4predict(self, words, nature_filter=None):
+    def delete_rare_words_single(self, words, nature_filter=None):
         for word in words:
             for ffid, tfid in zip(self.delete_rare_word_ffids, self.delete_rare_word_tfids):
                 while len(word) <= tfid:
@@ -75,15 +88,6 @@ class Word2Vec:
                 else:
                     word[tfid] = word[ffid]
         return words
-
-    def stem_en(self):
-        stemmer = nltk.stem.SnowballStemmer("english")
-        records = [record for record in self.docs.find()]
-        for record in records:
-            for word in record["words"]:
-                word[2] = stemmer.stem(word[0])
-            self.docs.save(record)
-        print('Stem completed!')
 
     def score2tag(self):
         records = [record for record in self.docs.find()]
@@ -132,10 +136,8 @@ class Word2Vec:
         print ("features_%d has been Trained!" % fid)
         return wv
 
+    # Attention: 'all' should always the first
     def nature_filter(self, nature, feature_value, frequency):
-        # if frequency < 5:
-        #    print(nature, feature_value)
-        # Attention: 'all' should always the first
         if len(self.filter_natures) == 0 or (self.filter_natures[0] != 'all' and nature not in self.filter_natures):
             return False
         ind = self.filter_natures.index(nature) if nature in self.filter_natures else 0
@@ -145,12 +147,11 @@ class Word2Vec:
 
     def dump(self):
         # self.score2tag()
-        if self.mes.config['LANG'] == 'en' and self.mes.config['W2V_STEM']:
-            self.stem_en()
-        for ffid, tfid in zip(self.delete_rare_word_ffids, self.delete_rare_word_tfids):
-            freq = self.delete_rare_words(ffid, tfid, Word2Vec.nature_filter)
+        self.divide()
+        self.delete_rare_words(Word2Vec.nature_filter)
+        for ffid in self.delete_rare_word_ffids:
             with open(self.mes.get_feature_freq_path(ffid), "w") as fout:
-                json.dump(freq, fout)
+                json.dump(self.features_freqs[ffid], fout)
         for fid in self.one_hot_fids:
             feature, feature_ids = self.word2one_hot(fid)
             with open(self.mes.get_feature_path(fid), "w") as fout:
@@ -165,12 +166,7 @@ class Word2Vec:
 
 
 if __name__ == '__main__':
-    # mes = Mes.Mes("semval14_laptop", "Other", "W2V", "semval14.yml")
-    # w2v = Word2Vec(mes, trainable=False)
-    # with open("test/word2vec_delete_rare_words4predict_words.json", "r") as fin:
-    #     words = json.load(fin)
-    # print(w2v.delete_rare_words4predict(words, nature_filter=Word2Vec.nature_filter))
-    mes = mes_holder.Mes("nlpcc_zh", "NOLSTM", "W2V")
+    mes = mes_holder.Mes("nlpcc_en", "NOLSTM", "W2V")
     w2v = Word2Vec(mes)
     w2v.dump()
 

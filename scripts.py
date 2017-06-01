@@ -1,15 +1,17 @@
-# coding=utf-8
-
+# -*- coding: utf-8 -*-
+import codecs
 import json
 import os
 import pymongo
 import nltk
 import matplotlib.pyplot as plt
 import random
+import re
 import string
 import sys
 import xml.dom.minidom as minidom
 
+import mes_holder
 import text_extractor
 import utils
 import predict_LSTM
@@ -71,42 +73,43 @@ def draw_several_accuracy_plots(in_names, labels, gap, sz, title):
     plt.show()
 
 
-def create_new_col(col_name, new_col_name, words_num, tag_num):
+def show_text_by_tag(col_name, tag, limit, feature=False, plainword=False, rank=None, words_num_min=0, words_num_max=1e5, rareword=False):
     docs = pymongo.MongoClient("localhost", 27017).paper[col_name]
-    new_docs = pymongo.MongoClient("localhost", 27017).paper[new_col_name]
-    new_docs.drop()
-    records = docs.find()
-    valid_records = {}
-    for record in records:
-        if len(record["words"]) <= words_num:
-            if record["tag"] not in valid_records:
-                valid_records[record["tag"]] = []
-            valid_records[record["tag"]].append(record)
-    for tag in [-1, 1]:
-        random.shuffle(valid_records[tag])
-    for tag in [-1, 1]:
-        for record in valid_records[tag][:tag_num]:
-            new_docs.save(record)
-
-
-def show_text_by_tag(col_name, tag, limit):
-    docs = pymongo.MongoClient("localhost", 27017).paper[col_name]
+    query = {}
     if tag is not None:
-        records = docs.find({"tag": tag})
-    else:
-        records = docs.find()
-    records = [record for record in records]
+        query["tag"] = tag
+    if rank is not None:
+        query["rank"] = rank
+    records = docs.find(query)
+    records = [record for record in records
+               if words_num_min < len(record['words']) < words_num_max]
+    if rareword:
+        new_records = []
+        for record in records:
+            for word in record['words']:
+                if mes_holder.DEFAULT_RARE_WORD in word:
+                    new_records.append(record)
+                    break
+        records = new_records
+        del new_records
     random.shuffle(records)
     records = records[:limit]
     fnum = len(records[0]['words'][0])
     for record in records:
         words = [[] for _ in range(fnum)]
         print 'Text:', record["text"]
-        for word in record['words']:
+        if plainword:
+            words_infos = []
+            for word in record['words']:
+                # print word
+                words_infos.append('[' + ','.join([unicode(w) for w in word]) + ']')
+            print 'Words:', ','.join(words_infos)
+        if feature:
+            for word in record['words']:
+                for i in range(fnum):
+                    words[i].append(word[i])
             for i in range(fnum):
-                words[i].append(word[i])
-        for i in range(fnum):
-            print 'Feature %d:' % i, u' '.join([unicode(word) for word in words[i]])
+                print 'Feature %d:' % i, u' '.join([unicode(word) for word in words[i]])
 
 
 def restore_semval_14(col_name, fname):
@@ -149,7 +152,7 @@ def restore_semval_14(col_name, fname):
 
 def restore_imdb(col_name, dir_name, tag, is_train):
     docs = pymongo.MongoClient("localhost", 27017).paper[col_name]
-    cutter = text_extractor.WordCutterEN()
+    cutter = text_extractor.WordParser()
     for root, dirs, files in os.walk(dir_name):
         for fname in files:
             record = {}
@@ -159,7 +162,7 @@ def restore_imdb(col_name, dir_name, tag, is_train):
             record['text'] = record['text'].replace("<br />", '\n')
             print record['text']
             record['tag'] = tag
-            record['words'] = cutter.split(record['text'])
+            record['words'] = cutter.split(record['text'], lang='en')
             record['is_train'] = is_train
             if not is_train:
                 record['fold_id'] = 0
@@ -168,10 +171,7 @@ def restore_imdb(col_name, dir_name, tag, is_train):
 
 def restore_nlpcc(col_name, fname, tag, lang, is_train):
     docs = pymongo.MongoClient("localhost", 27017).paper[col_name]
-    if lang == 'en':
-        cutter = text_extractor.WordCutterEN()
-    else:
-        cutter = text_extractor.WordCutter()
+    cutter = text_extractor.WordParser()
     with open(fname) as fin:
         content = fin.read()
     content = content.replace('&', '##AND##')
@@ -189,12 +189,47 @@ def restore_nlpcc(col_name, fname, tag, lang, is_train):
             record['tag'] = tag
         else:
             record['tag'] = int(review.getAttribute('label')) - 1
-        record["words"] = cutter.split(text)
+        record["words"] = cutter.split(text, lang)
         record['is_train'] = is_train
         if not is_train:
             record['fold_id'] = 0
         docs.save(record)
     del cutter
+
+
+def insert_emotion(word, tag, emotion, forbidden):
+    if word not in forbidden:
+        if word in emotion and tag != emotion[word]:
+            if emotion[word] * tag < 0:
+                print 'Pop', word
+                emotion.pop(word)
+                forbidden.add(word)
+                return
+            elif abs(tag) < abs(emotion[word]):
+                emotion[word] = tag
+        if word not in emotion:
+            emotion[word] = tag
+
+
+def get_emotion(path, outfname):
+    emotion = {}
+    forbidden = set()
+    for root, dir, fnames in os.walk(path):
+        for fname in fnames:
+            with codecs.open(os.path.join(root, fname), 'r', 'utf8') as fin:
+                op = float(fin.readline())
+                texts = [text.strip() for text in fin.readlines() if text.strip()]
+                if op != 0:
+                    for text in texts:
+                        insert_emotion(text, op, emotion, forbidden)
+                else:
+                    for text in texts:
+                        infos = re.split('\s', text)
+                        score = float(infos[-1])
+                        word = ' '.join(infos[:-1])
+                        insert_emotion(word, score, emotion, forbidden)
+    with codecs.open(outfname, 'w', 'utf8') as fout:
+        json.dump(emotion, fout)
 
 
 def run():
@@ -245,10 +280,11 @@ def lemmarize(col_name):
 
 
 if __name__ == '__main__':
-    draw_several_accuracy_plots(
-        ["/home/iris/project/sentimentAnalysis/data/nlpcc_zh/model/NOLSTM/org/accuracy.json",
-         "/home/iris/project/sentimentAnalysis/data/nlpcc_zh/model/NOLSTM/withrarewords/accuracy.json"],
-        ["Frequent words", "All words"], 10, 100, "Accuracy Plot - Rare Word")
+    # restore_nlpcc("nlpcc_zh", "/home/iris/project/sentimentAnalysis/data/NLPCC训练数据集/Sentiment Classification with Deep Learning/test.label.cn.txt", None, 'zh', False)
+    # draw_several_accuracy_plots(
+    #     ["/home/iris/project/sentimentAnalysis/data/nlpcc_zh/model/NOLSTM/org/accuracy.json",
+    #      "/home/iris/project/sentimentAnalysis/data/nlpcc_zh/model/NOLSTM/withrarewords/accuracy.json"],
+    #     ["Frequent words", "All words"], 10, 100, "Accuracy Plot - Rare Word")
     # divide_fold_imdb('nlpcc_zh')
     # divide_fold_imdb('nlpcc_en')
     # draw_words_num("nlpcc_en")
@@ -256,5 +292,7 @@ if __name__ == '__main__':
     # print count_word_num('nlpcc_zh')
     # lemmarize('nlpcc_en')
     # create_new_col("tmpdata", "xiecheng100", 100, 11000)
-    # show_text_by_tag("mobile", None, 5)
+    # show_text_by_tag("ctrip", 0, 100, False, True)
     # restore_semval_14("laptop", "/home/iris/project/sentimentAnalysis/data/xiechengABSA/Laptop_Train_v2.xml")
+    get_emotion('data/emotion', mes_holder.DEFAULT_EMOTION_DATASET_PATH)
+    get_emotion('data/degree', mes_holder.DEFAULT_DEGREE_DATASET_PATH)

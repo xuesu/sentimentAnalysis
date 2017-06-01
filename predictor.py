@@ -5,10 +5,9 @@ import tensorflow as tf
 
 import datetime
 import data_generator
-import data_generator_ABSA
 import data_generator_LSTM
-import models
-import sys
+import model_cnnpl
+import model_cnnlstmpl
 import utils
 
 
@@ -26,16 +25,16 @@ class Predictor(object):
         self.trainable = trainable
         if self.model_type == 'LSTM':
             self.data_generator = data_generator_LSTM.DataGeneratorLSTM(mes, trainable)
-            self.model = models.LSTMModel(self.mes, self.graph)
-        elif self.model_type == 'ABSA_LSTM':
-            self.data_generator = data_generator_ABSA.DataGeneratorABSALSTM(self.mes, trainable)
-            self.model = models.ABSALSTMModel(self.mes, self.graph)
+            self.model = model_cnnlstmpl.LSTMModel(self.mes, self.graph)
+        # elif self.model_type == 'ABSA_LSTM':
+        #     self.data_generator = data_generator_ABSA.DataGeneratorABSALSTM(self.mes, trainable)
+        #     self.model = models.ABSALSTMModel(self.mes, self.graph)
         elif self.model_type == 'NOLSTM':
             self.data_generator = data_generator.DataGenerator(self.mes, trainable, True)
-            self.model = models.NOLSTMModel(self.mes, self.graph)
-        elif self.model_type == 'ABSA_NOLSTM':
-            self.data_generator = data_generator_ABSA.DataGeneratorABSANOLSTM(mes, trainable)
-            self.model = models.ABSANOLSTMModel(self.mes, self.graph)
+            self.model = model_cnnpl.NOLSTMModel(self.mes, self.graph)
+        # elif self.model_type == 'ABSA_NOLSTM':
+        #     self.data_generator = data_generator_ABSA.DataGeneratorABSANOLSTM(mes, trainable)
+        #     self.model = models.ABSANOLSTMModel(self.mes, self.graph)
         self.session = tf.Session(graph=self.graph)
         if trainable:
             self.good_accuracy = self.mes.config['PRE_GOOD_RATE']
@@ -101,7 +100,6 @@ class Predictor(object):
                                                      self.data_generator.batch_sz)
             average_loss += l
             average_train_accuracy += train_accuracy
-            print l
             if i % self.valid_time == 0:
                 accuracy = self.validate(self.session)
                 valid_accuracys.append(accuracy)

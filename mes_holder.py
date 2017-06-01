@@ -13,11 +13,17 @@ DEFAULT_FEATURE_FNAME_FORMAT = "feature{}.json"
 DEFAULT_FEATURE_IDS_FNAME_FORMAT = "feature{}_ids.json"
 DEFAULT_FEATURE_EMB_FNAME_FORMAT = "feature{}_emb.json"
 DEFAULT_FEATURE_FREQ_FNAME_FORMAT = "feature{}_freq.json"
+DEFAULT_EMOTION_DATASET_FNAME = "emotion.json"
+DEFAULT_DEGREE_DATASET_FNAME = "degree.json"
+DEFAULT_EMOTION_DATASET_PATH = os.path.join(DEFAULT_DATA_DIR, DEFAULT_EMOTION_DATASET_FNAME)
+DEFAULT_DEGREE_DATASET_PATH = os.path.join(DEFAULT_DATA_DIR, DEFAULT_DEGREE_DATASET_FNAME)
 DEFAULT_API_PORT = 8090
 DEFAULT_RARE_WORD = "RareWord"
 DEFAULT_MONGO_HOST = "localhost"
 DEFAULT_MONGO_PORT = 27017
 DEFAULT_MONGO_DB = "paper"
+DEFAULT_ADV_LABEL = {"RB", "AD", "VE"}
+# -1 neg 0 pos 1 neural 2 contradict
 
 
 class Mes:
@@ -67,8 +73,7 @@ class Mes:
     def get_feature_freq_path(self, fid):
         return os.path.join(self.meta_path, DEFAULT_FEATURE_FREQ_FNAME_FORMAT.format(fid))
 
-
 if __name__ == '__main__':
     # Test
-    mes = Mes('hotel', 'LSTM', '0', 'semval14.yml')
+    mes = Mes('hotel', 'LSTM', 'test', 'semval14.yml')
     mes.dump()

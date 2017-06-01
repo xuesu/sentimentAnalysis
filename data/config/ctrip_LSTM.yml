@@ -1,79 +1,85 @@
 LANG: 
-  en
+  zh
 
 LABEL_NUM:
-  5
+  3
 
 W2V_STEM:
   False
 W2V_FILTER_NATURES:
-  ['NNP', 'NNS', 'NNPS', 'FW', 'j', 'nr', 'ns', 'nt', 'nx', 'nz', '', 'null', None]
+  ['all','nt', 'ns', 'nrf', 'nto', 'null', None]
 W2V_VOC_LIMITS:
-  [3, 3, 3, 5, 3, 5, 5, 5, 5, 5, 5, 5, 5]
+  [7, 12, 12, 12, 12, 12, 12]
 W2V_DELETE_RARE_WORD_FFIDS:
-  [0, 4]
+  [0]
 W2V_DELETE_RARE_WORD_TFIDS:
-  [7, 8]
+  [2]
 W2V_ONE_HOT_FIDS:
-  [7, 1, 8]
+  [2, 1]
 W2V_TRAIN_FIDS:
-  [7, 1, 8]
+  [2, 1]
 W2V_TRAIN_FIDS_EMB_SZ:
-  [64, 8, 32]
+  [32, 8]
 
+
+DG_STEP_BACK:
+  8
+DG_STEP_NUM:
+  10
 DG_FIDS:
-  [7]
+  [2, 1]
 DG_BATCH_SZ:
-  200
+  500
 DG_TEST_BATCH_SZ:
   200
 DG_RNUM:
   0
 DG_SENTENCE_SZ:
-  100
+  50
 DG_DIVIDE_FOLD:
-  True
+  False
 DG_FOLD_NUM:
   11
 DG_FOLD_TEST_ID:
-  0
+  -1
 DG_FOLD_VALID_ID:
-  1
+  0
+
+PRE_ONE_HOT_FIDS:
+  [1]
+PRE_ONE_HOT_DEPTHS:
+  [45]
+PRE_C_FIDS:
+  []
+PRE_EMB_FIDS:
+  [2]
 
 PRE_CONVS_LEVEL_NUMS:
   1
 PRE_CONVS_KERNEL_NUMS:
-  [[2,3,5]]
+  [[3,5,6,7,9]]
 PRE_CONVS_STRIDES:
-  [[1,1,1]]
+  [[1,1,1,1,1]]
 PRE_CONVS_FILTER_NUMS:
-  [64]
+  [32]
 PRE_POOLS_SIZES:
-  [[1,1,1]]
+  [[-1,-1,-1,-1,-1]]
 PRE_POOLS_STRIDES:
-  [[1,1,1]]
+  [[-1,-1,-1,-1,-1]]
 
-
-PRE_ONE_HOT_FIDS:
-  []
-PRE_ONE_HOT_DEPTHS:
-  []
-PRE_C_FIDS:
-  []
-PRE_EMB_FIDS:
-  [7, 1, 8]
 PRE_GOOD_RATE:
-  0.8
+  0.7
 PRE_LINEAR1_SZ:
-  8000
+  256
+PRE_LSTM_SZ:
+  256
 PRE_LINEAR2_SZ:
-  2000
+  64
 PRE_E_LEARNING_RATE:
-  0.1
+  0.001
 PRE_STEP_NUM:
-  5000
+  10000
 PRE_DROPOUT_KEEP_PROB:
   0.6
 PRE_VALID_TIME:
-  40
-
+  200

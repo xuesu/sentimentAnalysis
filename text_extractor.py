@@ -1,49 +1,7 @@
 # coding=utf-8
-import codecs
 import jpype
 import os
-import pymongo
 import nltk
-
-valid_coding = ['gbk', 'gb18030', "gb2312", 'utf8', 'big5', 'unicode']
-
-hotel = pymongo.MongoClient("localhost", 27017).paper.mobile
-
-
-def convertF2UTF8(filename):
-    text = readF2UTF8()
-    fout = codecs.open(filename, "w", "utf8")
-    fout.write(text)
-    fout.close()
-
-
-def readF2UTF8(filename):
-    for ocoding in valid_coding:
-        try:
-            fin = codecs.open(filename, "r", ocoding)
-            text = fin.read()
-            fin.close()
-            return text
-        except Exception:
-            pass
-    raise ValueError(filename + " can not be converted!")
-
-
-def storeTextFromDirectory(path, tag):
-    for parent, _, filenames in os.walk(path):
-        for filename in filenames:
-            try:
-                text = readF2UTF8(os.path.join(parent, filename))
-                hotel.save({"text": text, "tag": tag})
-            except Exception, e:
-                print e.message
-
-
-def clear_record(text):
-    text = text.replace("\r", "\n")
-    while text.find("\n\n") != -1:
-        text = text.replace("\n\n", "\n")
-    return text
 
 
 class WordParser(object):
@@ -120,13 +78,14 @@ class WordParser(object):
             words = words[:-1]
         return words
 
-    def parse(self, text, lang='zh'):
+    def parse(self, words, lang='zh'):
         if lang == 'zh':
-            return self.parse_zh(text)
-        return self.parse_en(text)
+            return self.parse_zh(words)
+        return self.parse_en(words)
 
-    def parse_en(self, text):
+    def parse_en(self, words):
         trees = []
+        text = ' '.join([word[0] for word in words])
         annotation = self.JAnnotation(text)
         self.corenlp.annotate(annotation)
         sentences = annotation.get(self.JSentencesAnnotation)
@@ -135,14 +94,26 @@ class WordParser(object):
             trees.append(tree)
         return trees
 
-    def parse_zh(self, text):
-        words = self.split_zh(text)
-        jwords = [self.JWord(word[0]) for word in words]
+    def parse_zh(self, words):
+        jwords = jpype.java.util.ArrayList()
+        for word in words:
+            jwords.add(self.JWord(word[0]))
         return [self.parser_zh.parse(jwords)]
 
+
+class WordParserHolder(object):
+    def __init__(self):
+        self.parser = None
+
+    def get_parser(self):
+        if self.parser is None:
+            self.parser = WordParser()
+        return self.parser
+
+parser_holder = WordParserHolder()
 
 if __name__ == '__main__':
     # cutter = WordCutter()
     # print cutter.split(u"假设你要设置的属性名为 yourProperty，属性值为 yourValue 。")
     cutter = WordParser()
-    print cutter.parse("'Hello Word' is a good opening for coders, don't we?", 'en')
+    print cutter.split("'Hello Word' is a good opening for coders, don't we?", 'en')
