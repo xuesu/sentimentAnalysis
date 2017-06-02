@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import random
 import numpy
 
@@ -53,15 +54,17 @@ class DataGenerator(object):
         dataset, labels = DataGenerator.shuffle(dataset, labels)
         return dataset, labels
 
-    def text2vec(self, text):
-        words = self.cutter.split(text)
-        words = self.w2v.delete_rare_words4predict(words, nature_filter=word2vec.Word2Vec.nature_filter)
+    def text2vec(self, text, lang):
+        words = self.cutter.split(text, lang)
+        words = self.w2v.delete_rare_words_single(words, nature_filter=word2vec.Word2Vec.nature_filter)
         words_sz = len(words)
+        rubbish = [0] * words_sz
         ans = []
-        ind = 0
-        while ind < words_sz:
-            ans.append(numpy.array([self.words2vec(words, ind)]))
-            ind += self.sentence_sz
+        fl = False
+        inds = [0, 0, 0]
+        while not fl:
+            vec, _, fl = self.next([words], [rubbish], inds, 0, 0)
+            ans.append(vec)
         return ans
 
     def words2vec(self, words, ind):
@@ -140,15 +143,6 @@ class DataGenerator(object):
 
 
 if __name__ == '__main__':
-    mes = mes_holder.Mes("hotel", "Other", "LSTM", "hotel_LSTM.yml")
-    dg = DataGenerator(mes)
-    data, labels, finished = dg.next_train()
-    for fid in data:
-        print data[fid].shape
-        print data[fid]
-    print labels.shape
-    print labels
-
-    for i in range(50):
-        batch_data, batch_labels, finished = dg.next_test()
-        print batch_data, batch_labels
+    mes = mes_holder.Mes("ctrip", "LSTM", "final")
+    dg = DataGenerator(mes, trainable=False)
+    print dg.text2vec(u"虽然终于等到这本书，但是太贵了啦！", 'zh')

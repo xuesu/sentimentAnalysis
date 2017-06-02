@@ -84,11 +84,16 @@ class PlainPredictor:
     def get_test_accuracy(self, col_name, lang):
         start_time = datetime.datetime.now()
         tt_num = 0
-        records = [record for record in utils.get_docs(col_name).find()]
-        for record in records:
-            logit = self.predict(record['words'], lang)
-            if logit == record['tag']:
-                tt_num += 1
+        records = [record for record in utils.get_docs(col_name).find({"fold_id": 0})]
+        for i, record in enumerate(records):
+            if len(record['words']) < 200:
+                logit = self.predict(record['words'], lang)
+                if logit == record['tag']:
+                    tt_num += 1
+            if i % 100 == 0:
+                accuracy = tt_num * 100.0 / (i + 1)
+                now_time = datetime.datetime.now()
+                print 'Spend %d seconds, %d records, accuracy: %.2f%%' % ((now_time - start_time).seconds, i + 1, accuracy)
         accuracy = tt_num * 100.0 / len(records)
         now_time = datetime.datetime.now()
         print 'Spend %d seconds, accuracy: %.2f%%' % ((now_time - start_time).seconds, accuracy)

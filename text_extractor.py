@@ -34,7 +34,7 @@ class WordParser(object):
         LexicalizedParser = jpype.JClass("edu.stanford.nlp.parser.lexparser.LexicalizedParser")
         self.JWord = jpype.JClass("edu.stanford.nlp.ling.Word")
         self.parser_zh = LexicalizedParser.loadModel("edu/stanford/nlp/models/lexparser/xinhuaFactored.ser.gz",
-                                                     ["-maxLength", "2000"])
+                                                     ["-maxLength", "202"])
 
     def __del__(self):
         jpype.shutdownJVM()
