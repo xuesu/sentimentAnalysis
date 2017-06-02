@@ -120,4 +120,9 @@ if __name__ == '__main__':
     # cutter = WordCutter()
     # print cutter.split(u"假设你要设置的属性名为 yourProperty，属性值为 yourValue 。")
     cutter = WordParser()
-    print cutter.split("'Hello Word' is a good opening for coders, don't we?", 'en')
+    import utils
+    ctrip = utils.get_docs("ctrip")
+    for record in ctrip.find():
+        record['words'] = cutter.split(record['text'])
+        ctrip.save(record)
+    print 'completed!'

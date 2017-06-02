@@ -44,7 +44,7 @@ class PredictorNOLSTM(predictor.Predictor):
 
 
 if __name__ == '__main__':
-    predictor = PredictorNOLSTM('ctrip', 'web', trainable=False)
-    predictor.predict(u'我有点小生气')
-    # scripts.run()
+    # predictor = PredictorNOLSTM('ctrip', 'web', trainable=False)
+    # predictor.predict(u'我有点小生气')
+    scripts.run()
 

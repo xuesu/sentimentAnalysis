@@ -8,14 +8,15 @@ import traceback
 
 import utils
 import demo_exceptions
-import text_extractor
-import Predictor
+import predict_NOLSTM
 import mes_holder
 
 app = flask.Flask('demo')
 logger = utils.init_logger("demo")
-cutter = text_extractor.WordCutter()
-predictor = Predictor.Predictor(docs=None, trainable=False)
+
+predictors = {
+    "ctrip_NOLSTM": predict_NOLSTM.PredictorNOLSTM('ctrip', 'web', trainable=False)
+}
 
 
 def service_exception_handler(func):
@@ -69,14 +70,11 @@ def prediction():
                "error": {"type": "", "message": "", "message_chs": ""}}
     headers = {"content-type": "application/json"}
     text = flask.request.form["text"]
-    words = json.loads(text)
-    logits = predictor.predict(text)
-    rare_words = []
-    for word in words:
-        if word[2] != word[0]:
-            rare_words.append(word[0])
-    content["data"]["logits"] = logits.tolist()
-    content["data"]["rare_words"] = ','.join(rare_words)
+    model_type = flask.request.form["model_type"]
+    col_name = flask.request.form["col_name"]
+    op = "{}_{}".format(col_name, model_type)
+    resp = predictors[op].predict(text)
+    content["data"] = resp
     return json.dumps(content), flask_api.status.HTTP_200_OK, headers
 
 

@@ -280,19 +280,5 @@ def lemmarize(col_name):
 
 
 if __name__ == '__main__':
-    # restore_nlpcc("nlpcc_zh", "/home/iris/project/sentimentAnalysis/data/NLPCC训练数据集/Sentiment Classification with Deep Learning/test.label.cn.txt", None, 'zh', False)
-    # draw_several_accuracy_plots(
-    #     ["/home/iris/project/sentimentAnalysis/data/nlpcc_zh/model/NOLSTM/nature/accuracy.json",
-    #         "/home/iris/project/sentimentAnalysis/data/nlpcc_zh/model/NOLSTM/test/accuracy.json"],
-    #     ["Word + POS", "Word"], 40, 25, "Accuracy Plot - POS")
-    # divide_fold_imdb('nlpcc_zh')
-    # divide_fold_imdb('nlpcc_en')
-    # draw_words_num("nlpcc_en")
-    # draw_words_num("semval14_restaurants")
-    # print count_word_num('nlpcc_zh')
-    # lemmarize('nlpcc_en')
-    # create_new_col("tmpdata", "xiecheng100", 100, 11000)
-    show_text_by_tag("nlpcc_zh", 0, 200, False, False)
-    # restore_semval_14("laptop", "/home/iris/project/sentimentAnalysis/data/xiechengABSA/Laptop_Train_v2.xml")
-    # get_emotion('data/emotion', mes_holder.DEFAULT_EMOTION_DATASET_PATH)
-    # get_emotion('data/degree', mes_holder.DEFAULT_DEGREE_DATASET_PATH)
+    # show_text_by_tag("nlpcc_zh", 0, 200, False, False)
+    restore_nlpcc('nlpcc_en', 'data/nplcc2014scdl/train/en_sample_data/sample.positive.txt', 0, 'en', True)

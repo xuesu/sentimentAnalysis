@@ -109,10 +109,12 @@ class Predictor(object):
                 print "Average Loss at Step %d: %.10f" % (i, average_loss / self.valid_time)
                 print "Average Train Accuracy %.3f" % (average_train_accuracy)
                 print "Validate Accuracy %.3f" % accuracy
-                if self.data_generator.test_sz > 0 and accuracy >= self.best_accuracy_valid:
-                    test_accuracy = self.test(self.session)
-                    print "Test Accuracy %.3f" % test_accuracy
-                    if test_accuracy >= self.good_accuracy and average_train_accuracy >= self.good_accuracy:
+                if accuracy >= self.best_accuracy_valid:
+                    if self.data_generator.test_sz > 0:
+                        test_accuracy = self.test(self.session)
+                        print "Test Accuracy %.3f" % test_accuracy
+                    if (self.data_generator.test_sz == 0 or test_accuracy >= self.good_accuracy)\
+                            and average_train_accuracy >= self.good_accuracy:
                         self.best_accuracy_valid = accuracy
                         self.best_accuracy_test = test_accuracy
                         self.model.saver.save(self.session, self.model_save_path)
