@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import random
 import numpy
 
@@ -42,7 +43,7 @@ class DataGenerator(object):
             self.valid_inds = [0, 0, 0]
             self.train_inds = [0, 0, self.rnum]
         elif not trainable:
-            self.cutter = text_extractor.WordParser()
+            self.cutter = text_extractor.parser_holder.get_parser()
 
     @staticmethod
     def get_data_by_fold_ids(records, fold_ids=None):
@@ -53,16 +54,16 @@ class DataGenerator(object):
         dataset, labels = DataGenerator.shuffle(dataset, labels)
         return dataset, labels
 
-    def text2vec(self, text):
-        words = self.cutter.split(text)
-        words = self.w2v.delete_rare_words4predict(words, nature_filter=word2vec.Word2Vec.nature_filter)
-        words_sz = len(words)
+    def text2vec(self, text, lang):
+        words = self.cutter.split(text, lang)
+        words = self.w2v.delete_rare_words_single(words, nature_filter=word2vec.Word2Vec.nature_filter)
         ans = []
-        ind = 0
-        while ind < words_sz:
-            ans.append(numpy.array([self.words2vec(words, ind)]))
-            ind += self.sentence_sz
-        return ans
+        fl = False
+        inds = [0, 0, 0]
+        while not fl:
+            batch, _, fl = self.next([words], [0], inds, 1, 1)
+            ans.append(batch)
+        return {'batches': ans, 'words': words}
 
     def words2vec(self, words, ind):
         ans = {}
@@ -93,7 +94,7 @@ class DataGenerator(object):
 
     def next(self, data, labels, inds, batch_sz, r_num=0):
         # print(inds)
-        assert self.trainable
+        # assert self.trainable
         assert(len(data) == len(labels))
         data_ind, word_ind = inds[:2]
         data_sz = len(data)
@@ -140,15 +141,6 @@ class DataGenerator(object):
 
 
 if __name__ == '__main__':
-    mes = mes_holder.Mes("hotel", "Other", "LSTM", "hotel_LSTM.yml")
-    dg = DataGenerator(mes)
-    data, labels, finished = dg.next_train()
-    for fid in data:
-        print data[fid].shape
-        print data[fid]
-    print labels.shape
-    print labels
-
-    for i in range(50):
-        batch_data, batch_labels, finished = dg.next_test()
-        print batch_data, batch_labels
+    mes = mes_holder.Mes("nlpcc_zh", "NOLSTM", "web")
+    dg = DataGenerator(mes, trainable=False)
+    ans = dg.text2vec(u'我今天有点不太高兴', 'zh')

@@ -46,7 +46,8 @@ class Predictor(object):
             self.validate_times = self.data_generator.valid_sz / self.data_generator.test_batch_sz
             self.test_times = self.data_generator.test_sz / self.data_generator.test_batch_sz
             with self.model.graph.as_default():
-                if self.mes.config.get('MODEL_RESTORE_PATH', None) is not None:
+                if self.mes.config.get('MODEL_RESTORE_PATH', None) is not None and \
+                        os.path.exists(self.mes.config.get('MODEL_RESTORE_PATH', None)):
                     self.model.saver.restore(self.session, self.mes.config['MODEL_RESTORE_PATH'])
                     print 'Restored from', self.mes.config['MODEL_RESTORE_PATH']
                 else:

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import numpy
 
 import data_generator
@@ -11,9 +12,13 @@ class DataGeneratorLSTM(data_generator.DataGenerator):
         self.step_back = mes.config['DG_STEP_BACK']
         self.blocks_cache = []
 
+    def text2vec(self, text, lang):
+        self.blocks_cache = []
+        return super(DataGeneratorLSTM, self).text2vec(text, lang)
+
     def next(self, data, labels, inds, batch_sz, r_num=0):
         # print(inds)
-        assert self.trainable
+        # assert self.trainable
         assert(len(data) == len(labels))
         data_sz = len(data)
         if len(self.blocks_cache) > 0:
@@ -57,19 +62,7 @@ class DataGeneratorLSTM(data_generator.DataGenerator):
 
 
 if __name__ == '__main__':
-    mes = mes_holder.Mes("nlpcc_zh", "LSTM", "Test")
-    dg = DataGeneratorLSTM(mes)
-    # data, labels, finished = dg.next_train()
-    # for fid in data:
-    #     print data[fid].shape
-    #     print data[fid]
-    # print labels.shape
-    # print labels
-
-    for i in range(50):
-        print dg.test_inds
-        batch_data, batch_labels, finished = dg.next_valid()
-        for fid in batch_data:
-            for batch_d in batch_data[fid]:
-                print batch_d
-        print 'label:', batch_labels
+    mes = mes_holder.Mes("nlpcc_zh", "LSTM", "web")
+    dg = DataGeneratorLSTM(mes, trainable=False)
+    ans = dg.text2vec(u'我今天有点不太高兴', 'zh')
+    print ans

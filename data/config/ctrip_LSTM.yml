@@ -83,3 +83,5 @@ PRE_DROPOUT_KEEP_PROB:
   0.6
 PRE_VALID_TIME:
   200
+MODEL_RESTORE_PATH:
+  data/ctrip/model/LSTM/final/m

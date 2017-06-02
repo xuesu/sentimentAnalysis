@@ -52,3 +52,12 @@ def get_groups(s, g):
 
 def get_docs(col_name):
     return pymongo.MongoClient(mes_holder.DEFAULT_MONGO_HOST, mes_holder.DEFAULT_MONGO_PORT)[mes_holder.DEFAULT_MONGO_DB][col_name]
+
+
+def get_tag_from_logits(logits):
+    max_logit = max(logits)
+    ans = 0
+    for ans in range(len(logits)):
+        if max_logit == logits[ans]:
+            break
+    return ans - 1

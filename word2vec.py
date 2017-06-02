@@ -119,7 +119,7 @@ class Word2Vec:
         return feature, feature_ids
 
     def word2vec(self, fid, emb_sz):
-        records = [record for record in self.docs.find()]
+        records = [record for record in utils.get_docs('merge_zh').find()]
         with open(self.mes.get_feature_path(fid)) as fin:
             features = json.load(fin)
         sentences = []
@@ -166,7 +166,7 @@ class Word2Vec:
 
 
 if __name__ == '__main__':
-    mes = mes_holder.Mes("nlpcc_en", "NOLSTM", "W2V")
+    mes = mes_holder.Mes("nlpcc_en", "LSTM", "W2V")
     w2v = Word2Vec(mes)
     w2v.dump()
 

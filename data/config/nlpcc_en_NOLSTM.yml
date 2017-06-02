@@ -77,3 +77,6 @@ PRE_DROPOUT_KEEP_PROB:
   0.6
 PRE_VALID_TIME:
   40
+
+MODEL_RESTORE_PATH:
+  data/nlpcc_en/model/NOLSTM/final/m

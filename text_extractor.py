@@ -3,13 +3,15 @@ import jpype
 import os
 import nltk
 
+import mes_holder
 
 class WordParser(object):
     def __init__(self):
         lib_path = "ansj.paper/lib"
         jars = os.listdir(lib_path)
         jars_class_path = ':'.join([os.path.join(lib_path, jar) for jar in jars])
-        jpype.startJVM(jpype.get_default_jvm_path(), "-ea", "-Djava.class.path=" + jars_class_path)
+        jpype.startJVM(mes_holder.DEFAULT_JVM_PATH, "-ea", "-Djava.class.path=" + jars_class_path,
+                       "-Xms1536m", "-Xmx1536m")
         ZHConverter = jpype.JClass("com.spreada.utils.chinese.ZHConverter")
         self.zh_converter = ZHConverter.getInstance(ZHConverter.SIMPLIFIED)
         LearnTool = jpype.JClass("org.ansj.dic.LearnTool")
@@ -28,13 +30,13 @@ class WordParser(object):
         self.JTreeAnnotation = jpype.JClass("edu.stanford.nlp.trees.TreeCoreAnnotations$TreeAnnotation")
         PropertiesUtils = jpype.JClass("edu.stanford.nlp.util.PropertiesUtils")
         self.corenlp = StanfordCoreNLP(PropertiesUtils.asProperties(
-            ["annotators", "tokenize,ssplit,truecase,pos,lemma,ner,parse,sentiment",
+            ["annotators", "tokenize,ssplit,truecase,pos,lemma",
             "tokenize.language", "en"]))
         self.stemmer = nltk.stem.SnowballStemmer("english")
-        LexicalizedParser = jpype.JClass("edu.stanford.nlp.parser.lexparser.LexicalizedParser")
-        self.JWord = jpype.JClass("edu.stanford.nlp.ling.Word")
-        self.parser_zh = LexicalizedParser.loadModel("edu/stanford/nlp/models/lexparser/xinhuaFactored.ser.gz",
-                                                     ["-maxLength", "2000"])
+        # LexicalizedParser = jpype.JClass("edu.stanford.nlp.parser.lexparser.LexicalizedParser")
+        # self.JWord = jpype.JClass("edu.stanford.nlp.ling.Word")
+        # self.parser_zh = LexicalizedParser.loadModel("edu/stanford/nlp/models/lexparser/xinhuaFactored.ser.gz",
+        #                                              ["-maxLength", "50"])
 
     def __del__(self):
         jpype.shutdownJVM()
@@ -72,13 +74,14 @@ class WordParser(object):
                     word = "'"
                 pos = token.get(self.JPartOfSpeechAnnotation)
                 lemma = token.get(self.JLemmaAnnotation)
-                ner = token.get(self.JNamedEntityTagAnnotation)
-                words.append([word, pos, -1, word.lower(), self.stemmer.stem(lemma), ner])
+                # ner = token.get(self.JNamedEntityTagAnnotation)
+                words.append([word, pos, -1, word.lower(), self.stemmer.stem(lemma), 'ner'])
         if words[-1][0] == '.' and text.endswith(words[-2][0]):
             words = words[:-1]
         return words
 
     def parse(self, words, lang='zh'):
+        raise Exception("Out of Memory!")
         if lang == 'zh':
             return self.parse_zh(words)
         return self.parse_en(words)

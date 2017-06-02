@@ -2,6 +2,7 @@ import predictor
 import mes_holder
 import numpy
 import scripts
+import utils
 
 
 class PredictorLSTM(predictor.Predictor):
@@ -53,7 +54,9 @@ class PredictorLSTM(predictor.Predictor):
             state = new_state
 
     def predict(self, text):
-        batches = self.data_generator.text2vec(text)
+        resp = self.data_generator.text2vec(text, self.mes.lang)
+        batches = resp['batches']
+        resp.pop('batches')
         feed_dict = {self.model.dropout_keep_prob: 1.0}
         state = [numpy.zeros([1, sz], dtype=float) for sz in self.model.lstm.state_size]
         logits = None
@@ -64,7 +67,8 @@ class PredictorLSTM(predictor.Predictor):
                 feed_dict[self.model.train_dataset[fid]] = batch_data[fid]
             logits, new_state = self.session.run([self.model.logits, self.model.new_state], feed_dict=feed_dict)
             state = new_state
-        return logits[0]
+        resp['tag'] = utils.get_tag_from_logits(logits[0])
+        return resp
 
 if __name__ == '__main__':
     scripts.run()

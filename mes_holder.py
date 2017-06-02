@@ -23,6 +23,7 @@ DEFAULT_MONGO_HOST = "localhost"
 DEFAULT_MONGO_PORT = 27017
 DEFAULT_MONGO_DB = "paper"
 DEFAULT_ADV_LABEL = {"RB", "AD", "VE"}
+DEFAULT_JVM_PATH = "/home/iris/jdk1.8.0_121/jre/lib/amd64/server/libjvm.so"
 # -1 neg 0 pos 1 neural 2 contradict
 
 
@@ -49,6 +50,7 @@ class Mes:
         if os.path.exists(config_path):
             with open(config_path, "r") as fin:
                 self.config = yaml.load(fin)
+                self.lang = self.config['LANG']
             print 'Successfully load {}'.format(config_path)
             print json.dumps(self.config, indent=4, sort_keys=True)
         self.config_path = os.path.join(DEFAULT_DATA_DIR, train_col,

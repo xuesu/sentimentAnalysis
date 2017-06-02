@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
 import predictor
 import mes_holder
 import scripts
+import utils
 
 
 class PredictorNOLSTM(predictor.Predictor):
@@ -30,14 +32,19 @@ class PredictorNOLSTM(predictor.Predictor):
         return accuracy
 
     def predict(self, text):
-        batches = self.data_generator.text2vec(text)
+        resp = self.data_generator.text2vec(text, self.mes.lang)
+        batches = resp['batches']
+        resp.pop('batches')
         feed_dict = {self.model.dropout_keep_prob: 1.0}
         for fid in self.data_generator.fids:
             feed_dict[self.model.train_dataset[fid]] = batches[0][fid]
         logits = self.session.run([self.model.logits], feed_dict=feed_dict)[0]
-        return logits[0]
+        resp['tag'] = utils.get_tag_from_logits(logits[0])
+        return resp
 
 
 if __name__ == '__main__':
-    scripts.run()
+    predictor = PredictorNOLSTM('ctrip', 'web', trainable=False)
+    predictor.predict(u'我有点小生气')
+    # scripts.run()
 

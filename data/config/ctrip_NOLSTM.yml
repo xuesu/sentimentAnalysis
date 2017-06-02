@@ -77,3 +77,5 @@ PRE_DROPOUT_KEEP_PROB:
 PRE_VALID_TIME:
   200
 
+MODEL_RESTORE_PATH:
+  data/ctrip/model/NOLSTM/final/m
