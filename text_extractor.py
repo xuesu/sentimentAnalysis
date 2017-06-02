@@ -5,6 +5,7 @@ import nltk
 
 import mes_holder
 
+
 class WordParser(object):
     def __init__(self):
         lib_path = "ansj.paper/lib"
