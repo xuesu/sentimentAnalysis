@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="static/assets/css/custom.css"/>
     <link rel="stylesheet" href="static/assets/css/preload.css"/>
     <link rel="stylesheet" href="static/assets/css/animate.css"/>
+    <link rel="stylesheet" href="static/assets/css/chatbox.css"/>
     <noscript>
         <link rel="stylesheet" href="static/assets/css/noscript.css"/>
     </noscript>
@@ -49,10 +50,18 @@
         <!-- Panel (Banner) -->
         <section class="panel banner right">
             <div class="content color0 span-3-75">
-                <div class="field major">
-                    <textarea name="sys_mes" id="sys_mes" placeholder="你好，这次购物怎样？" rows="5" disabled=true></textarea>
+                <div class="chat_window">
+                    <ul class="messages"></ul>
                 </div>
-                <hr/>
+                <div class="message_template">
+                    <li class="message">
+                        <div class="avatar"></div>
+                        <div class="text_wrapper">
+                            <div class="text"></div>
+                        </div>
+                    </li>
+                </div>
+
                 <div class="field">
                     <textarea name="user_mes" id="user_mes" placeholder="请在此写下体验~" rows="1"></textarea>
                     <a id="user_submit" href="#" class="button special color2 icon fa-cog">Submit</a>
@@ -93,6 +102,7 @@
 <script src="static/assets/js/jquery.min.js"></script>
 <script src="static/assets/js/skel.min.js"></script>
 <script src="static/assets/js/main.js"></script>
+<script src="static/assets/js/chatbox.js"></script>
 <script src="static/assets/js/communicate.js"></script>
 
 </body>

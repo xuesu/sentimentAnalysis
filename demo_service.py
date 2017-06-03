@@ -73,6 +73,7 @@ def prediction():
                "error": {"type": "", "message": "", "message_chs": ""}}
     headers = {"content-type": "application/json"}
     text = flask.request.form["text"]
+    print text
     model_type = flask.request.form["model_type"]
     col_name = flask.request.form["col_name"]
     op = "{}_{}".format(col_name, model_type)

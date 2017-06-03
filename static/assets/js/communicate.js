@@ -4,6 +4,9 @@ var empty_prompt = "还什么都没有告诉我呢...";
 var empty_img_addr = "/static/images/empty.png";
 var rare_prompt = "我好像不太懂这些词的意思......";
 var rare_img_addr = "/static/images/rare.png";
+var error_prompt = "非常抱歉，联系不上服务器了......";
+var error_img_addr = "/static/images/rare.png";
+
 var prompts = {
     "-1": "非常抱歉，下次不会再有这样的事情发生了。",
     "0": "那么这次还算不错？我们会持续改进的！",
@@ -16,15 +19,9 @@ var img_addrs = {
 }
 var predict_url = "/predict/";
 
+var model_type = "NOLSTM";
+var col_name = "ctrip";
 
-function sys_say(text){
-	var sys_mes = $("#sys_mes");
-	sys_mes.val(sys_mes.val() + text + "\n");
-	sys_mes.scrollTop(sys_mes.prop("scrollHeight") - sys_mes.height());
-}
-function user_say(text){
-	sys_say(">> “" + text + "”" + "\n");
-}
 function pic_change(img_path){
 	$("#sys_photo").attr("src", img_path);
 }
@@ -58,9 +55,6 @@ function handle_predict(data){
 
 }
 
-model_type = "NOLSTM";
-col_name = "ctrip";
-
 function submit_d(){
 	data = $("#user_mes").val();
 	if (data.trim() == ""){
@@ -73,11 +67,17 @@ function submit_d(){
 		$.post(predict_url,
 			{"text": data, "model_type": model_type, "col_name": col_name},
 			handle_predict
-		);
+		).error(function(xhr,errorText,errorType){
+                sys_say(error_prompt);
+                pic_change(error_img_addr);
+                $("#loading").fadeOut(500);
+            }
+        );
 	}
 }
-
-$($("#sys_mes").val(welcome_prompt + "\n"));
+$(document).ready(
+    sys_say(welcome_prompt)
+);
 $($("#user_submit").click(submit_d));
 $($("#sec_en").click(function(){
     col_name = "nlpcc_en";
