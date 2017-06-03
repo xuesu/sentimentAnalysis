@@ -15,7 +15,10 @@ app = flask.Flask('demo')
 logger = utils.init_logger("demo")
 
 predictors = {
-    "ctrip_NOLSTM": predict_NOLSTM.PredictorNOLSTM('ctrip', 'web', trainable=False)
+    "ctrip_NOLSTM": predict_NOLSTM.PredictorNOLSTM('ctrip', 'web', trainable=False),
+    "ctrip_LSTM": predict_NOLSTM.PredictorNOLSTM('ctrip', 'web', trainable=False),
+    "nlpcc_en_NOLSTM": predict_NOLSTM.PredictorNOLSTM('nlpcc_en', 'web', trainable=False),
+    "nlpcc_en_LSTM": predict_NOLSTM.PredictorNOLSTM('nlpcc_en', 'web', trainable=False)
 }
 
 
