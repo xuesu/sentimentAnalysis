@@ -62,7 +62,7 @@ mes_holder模块读取data/config/<collection_name>_<model_type>.yml中的模型
 ## yml参数介绍
 
 参数|含义|类型
---|--
+| --------- |:-----------:| --------:|
 LANG|语言|en或zh
 LABEL_NUM|分类数目|整数
 W2V_FILTER_NATURES|过滤稀有词时特殊处理的词性|词性或'all', None组成的字符串数组
